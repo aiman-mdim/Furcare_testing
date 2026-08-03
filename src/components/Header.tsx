@@ -1,0 +1,200 @@
+import React from "react";
+import { useApp, PageName } from "../context/AppContext";
+import { getTranslation } from "../translations/i18n";
+import {
+  Heart,
+  ShoppingCart,
+  User as UserIcon,
+  Globe,
+  Bot,
+  Sparkles,
+  Stethoscope,
+  Scissors,
+  Hotel,
+  Store,
+  ShieldCheck,
+  Search,
+  Crown,
+  LayoutDashboard,
+} from "lucide-react";
+
+export const Header: React.FC = () => {
+  const {
+    language,
+    setLanguage,
+    activePage,
+    setActivePage,
+    currentUser,
+    cart,
+    setIsAiModalOpen,
+  } = useApp();
+
+  const totalCartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const navItems: { id: PageName; labelKey: any; icon: React.ReactNode }[] = [
+    { id: "home", labelKey: "navHome", icon: <Heart className="w-4 h-4 text-pink-500" /> },
+    { id: "adoption", labelKey: "navAdoption", icon: <Heart className="w-4 h-4 text-rose-500" /> },
+    { id: "vet", labelKey: "navVet", icon: <Stethoscope className="w-4 h-4 text-blue-500" /> },
+    { id: "grooming", labelKey: "navGrooming", icon: <Scissors className="w-4 h-4 text-purple-500" /> },
+    { id: "hotel", labelKey: "navHotel", icon: <Hotel className="w-4 h-4 text-amber-500" /> },
+    { id: "store", labelKey: "navStore", icon: <Store className="w-4 h-4 text-emerald-500" /> },
+    { id: "vaccines", labelKey: "navVaccine", icon: <ShieldCheck className="w-4 h-4 text-teal-500" /> },
+    { id: "lostfound", labelKey: "navLostFound", icon: <Search className="w-4 h-4 text-indigo-500" /> },
+    { id: "premium", labelKey: "navPremium", icon: <Crown className="w-4 h-4 text-amber-400" /> },
+  ];
+
+  return (
+    <header className="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-20">
+          
+          {/* Logo & Brand Name */}
+          <div
+            onClick={() => setActivePage("home")}
+            className="flex items-center gap-3 cursor-pointer group select-none"
+            id="brand-logo"
+          >
+            <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-500 to-cyan-500 p-0.5 shadow-md group-hover:scale-105 transition-transform">
+              <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
+                {/* SVG Logo: Cute Paw Print with Heart */}
+                <svg
+                  className="w-7 h-7 text-emerald-600 fill-current"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-2xl font-black tracking-tight text-slate-900 font-display">
+                  Fur<span className="text-emerald-600">Care</span>
+                </span>
+                <span className="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 rounded-md">
+                  Smart AI
+                </span>
+              </div>
+              <p className="text-[11px] font-medium text-slate-500 line-clamp-1 hidden sm:block">
+                {getTranslation(language, "tagline")}
+              </p>
+            </div>
+          </div>
+
+          {/* Right Action Bar (Language, Cart, AI Assistant, Login/Dashboard) */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            
+            {/* Language Switcher Mode (🇬🇧 English / 🇧🇩 বাংলা) */}
+            <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200" id="language-switcher">
+              <button
+                onClick={() => setLanguage("en")}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  language === "en"
+                    ? "bg-white text-emerald-700 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="Switch to English"
+              >
+                <span>🇬🇧</span>
+                <span className="hidden md:inline">{getTranslation(language, "langEn")}</span>
+              </button>
+              <button
+                onClick={() => setLanguage("bn")}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  language === "bn"
+                    ? "bg-white text-emerald-700 shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="বাংলায় পরিবর্তন করুন"
+              >
+                <span>🇧🇩</span>
+                <span className="hidden md:inline">{getTranslation(language, "langBn")}</span>
+              </button>
+            </div>
+
+            {/* AI Pet Assistant Trigger Button */}
+            <button
+              onClick={() => setIsAiModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-xl transition-all shadow-2xs"
+              id="ai-assistant-header-btn"
+            >
+              <Bot className="w-4 h-4 text-emerald-600 animate-pulse" />
+              <span className="hidden sm:inline">AI Doctor</span>
+            </button>
+
+            {/* Cart Icon & Badge */}
+            <button
+              onClick={() => setActivePage("cart")}
+              className={`relative p-2.5 rounded-xl transition-all border ${
+                activePage === "cart"
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-700"
+                  : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+              }`}
+              id="header-cart-btn"
+              title="Shopping Cart"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {totalCartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-rose-500 text-white text-[11px] font-extrabold rounded-full flex items-center justify-center shadow-xs animate-bounce">
+                  {totalCartCount}
+                </span>
+              )}
+            </button>
+
+            {/* User Profile / Login & Signup */}
+            {currentUser ? (
+              <button
+                onClick={() => setActivePage("dashboard")}
+                className={`flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border transition-all ${
+                  activePage === "dashboard"
+                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                    : "bg-slate-900 text-white border-slate-900 hover:bg-slate-800"
+                }`}
+                id="header-user-dashboard-btn"
+              >
+                <img
+                  src={currentUser.avatarUrl}
+                  alt={currentUser.name}
+                  className="w-6 h-6 rounded-full object-cover ring-1 ring-white/50"
+                />
+                <span className="text-xs font-bold truncate max-w-[100px] hidden md:inline">
+                  {currentUser.name}
+                </span>
+                <LayoutDashboard className="w-3.5 h-3.5 opacity-80" />
+              </button>
+            ) : (
+              <button
+                onClick={() => setActivePage("login")}
+                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-xs"
+                id="header-login-btn"
+              >
+                <UserIcon className="w-4 h-4" />
+                <span>{getTranslation(language, "loginSignup")}</span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Category Links Sub-Navigation Bar */}
+        <nav className="flex items-center gap-1 overflow-x-auto pb-2.5 pt-1 scrollbar-none border-t border-slate-100" id="main-nav-bar">
+          {navItems.map((item) => {
+            const isActive = activePage === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActivePage(item.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                  isActive
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                }`}
+              >
+                {item.icon}
+                <span>{getTranslation(language, item.labelKey)}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+    </header>
+  );
+};

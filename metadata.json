@@ -1,0 +1,6 @@
+{
+  "name": "FurCare — Smart Pet Healthcare & Services Platform",
+  "description": "Comprehensive smart pet care, vet booking, grooming, pet hotel, online store, adoption, lost & found AI detection, and digital health passport.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
