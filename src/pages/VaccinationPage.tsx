@@ -345,56 +345,6 @@ export const VaccinationPage: React.FC = () => {
 
       </div>
 
-      {/* Wireframe Platform Footer */}
-      <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6 mt-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-xs">
-          
-          <div className="space-y-2">
-            <h5 className="font-extrabold text-slate-900 text-sm">FurCare</h5>
-            <p className="text-slate-500 text-[11px] leading-relaxed">
-              Complete healthcare, emergency & lifestyle platform for your beloved pets in Bangladesh.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h5 className="font-extrabold text-slate-900 text-sm">Services</h5>
-            <ul className="space-y-1.5 text-slate-600 font-medium text-[11px]">
-              <li onClick={() => setActivePage("adoption")} className="hover:text-emerald-600 cursor-pointer">Adoption</li>
-              <li onClick={() => setActivePage("vet")} className="hover:text-emerald-600 cursor-pointer">Vet Appointment</li>
-              <li onClick={() => setActivePage("services")} className="hover:text-emerald-600 cursor-pointer">Grooming</li>
-              <li onClick={() => setActivePage("services")} className="hover:text-emerald-600 cursor-pointer">Pet Hotel</li>
-            </ul>
-          </div>
-
-          <div className="space-y-2">
-            <h5 className="font-extrabold text-slate-900 text-sm">Care</h5>
-            <ul className="space-y-1.5 text-slate-600 font-medium text-[11px]">
-              <li onClick={() => setActivePage("vaccination")} className="hover:text-emerald-600 cursor-pointer">Vaccination Records</li>
-              <li onClick={() => setActivePage("lost-found")} className="hover:text-emerald-600 cursor-pointer">Lost & Found</li>
-              <li onClick={() => setActivePage("premium")} className="hover:text-emerald-600 cursor-pointer">Premium</li>
-              <li onClick={() => setActivePage("reminders")} className="hover:text-emerald-600 cursor-pointer">Reminders</li>
-            </ul>
-          </div>
-
-          <div className="space-y-2">
-            <h5 className="font-extrabold text-slate-900 text-sm">Account</h5>
-            <ul className="space-y-1.5 text-slate-600 font-medium text-[11px]">
-              <li onClick={() => setActivePage("dashboard")} className="hover:text-emerald-600 cursor-pointer">Sign in</li>
-              <li onClick={() => setActivePage("dashboard")} className="hover:text-emerald-600 cursor-pointer">Dashboard</li>
-              <li onClick={() => setActivePage("shop")} className="hover:text-emerald-600 cursor-pointer">Shop</li>
-              <li onClick={() => setActivePage("cart")} className="hover:text-emerald-600 cursor-pointer">Cart</li>
-            </ul>
-          </div>
-
-        </div>
-
-        <div className="border-t border-slate-200 pt-4 text-center text-[11px] text-slate-500 flex items-center justify-center gap-1 font-medium">
-          <span>© 2026 FurCare · Made with</span>
-          <PawPrint className="w-3.5 h-3.5 text-emerald-600 inline" />
-          <span>in Bangladesh</span>
-        </div>
-      </div>
-
       {/* Modal Placeholders */}
       {(showAddPetModal || showAddVaccineModal) && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
