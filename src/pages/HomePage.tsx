@@ -19,7 +19,7 @@ import {
   PhoneCall,
   Bot,
 
-  // NEW Icons
+  // NEW Icon
   Star,
   ChevronDown,
   Quote,
