@@ -76,14 +76,14 @@ export const PetHotelPage: React.FC = () => {
       </div>
 
       {/* Hotel Search & Filter System */}
-      <div className="max-w-5xl mx-auto bg-[#14532D] p-4 rounded-3xl shadow-[0_12px_35px_rgba(20,83,45,0.22)] border border-emerald-800/40 space-y-4" id="hotel-filter-system">
+      <div className="max-w-5xl mx-auto bg-[#FE9A00] p-4 rounded-3xl shadow-[0_12px_35px_rgba(254,154,0,0.22)] border border-orange-700/40 space-y-4" id="hotel-filter-system">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           
           {/* Search Location */}
           <div className="space-y-1">
             <label className="font-bold text-white block">Search Location / Hotel</label>
-            <div className="bg-emerald-50/95 border border-emerald-200 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
-              <Search className="w-4 h-4 text-emerald-700" />
+            <div className="bg-orange-50/95 border border-orange-200 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
+              <Search className="w-4 h-4 text-orange-700" />
               <input
                 type="text"
                 value={searchQuery}
@@ -100,7 +100,7 @@ export const PetHotelPage: React.FC = () => {
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-medium text-slate-800 focus:outline-none shadow-sm"
+              className="w-full px-3 py-2 bg-orange-50/95 border border-orange-200 rounded-xl font-medium text-slate-800 focus:outline-none shadow-sm"
             >
               <option value="all">All Cities</option>
               <option value="Dhaka">Dhaka</option>
@@ -115,7 +115,7 @@ export const PetHotelPage: React.FC = () => {
             <select
               value={selectedRoomType}
               onChange={(e) => setSelectedRoomType(e.target.value)}
-              className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-medium text-slate-800 focus:outline-none shadow-sm"
+              className="w-full px-3 py-2 bg-orange-50/95 border border-orange-200 rounded-xl font-medium text-slate-800 focus:outline-none shadow-sm"
             >
               <option value="all">All Rooms</option>
               <option value="Standard Room">Standard Room</option>
@@ -134,9 +134,9 @@ export const PetHotelPage: React.FC = () => {
                 max="30"
                 value={bookingDays}
                 onChange={(e) => setBookingDays(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-bold text-center text-slate-800 shadow-sm"
+                className="w-full px-3 py-2 bg-orange-50/95 border border-orange-200 rounded-xl font-bold text-center text-slate-800 shadow-sm"
               />
-              <span className="font-bold text-emerald-100">Days</span>
+              <span className="font-bold text-orange-50">Days</span>
             </div>
           </div>
 
