@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useApp, PageName } from "../context/AppContext";
 import { getTranslation } from "../translations/i18n";
 import {
@@ -18,10 +18,72 @@ import {
   Award,
   PhoneCall,
   Bot,
+
+  // NEW Icons
+  Star,
+  ChevronDown,
+  Quote,
+  UserCircle,
 } from "lucide-react";
 
 export const HomePage: React.FC = () => {
   const { language, setActivePage, setIsAiModalOpen } = useApp();
+
+    const [openFAQ, setOpenFAQ] = useState<number | null>(0);
+
+const testimonials = [
+  {
+    name: "Aiman",
+    city: "Chattogram",
+    review:
+      "The online veterinarian diagnosed my puppy within minutes. Booking was extremely simple and professional.",
+  },
+  {
+    name: "Sarah",
+    city: "Dhaka",
+    review:
+      "Doorstep grooming was amazing. My cat loved the service and the staff were very friendly.",
+  },
+  {
+    name: "Fahim",
+    city: "Sylhet",
+    review:
+      "Lost & Found helped me recover my missing cat in just two days. Highly recommended.",
+  },
+];
+
+const faqs = [
+  {
+    question: "How do I book a veterinarian?",
+    answer:
+      "Go to the Vet section, choose your preferred veterinarian, select a date and time, and confirm your appointment.",
+  },
+  {
+    question: "Is AI Doctor free?",
+    answer:
+      "Yes. AI Doctor provides preliminary guidance. For emergencies, always consult a licensed veterinarian.",
+  },
+  {
+    question: "Can I book home grooming?",
+    answer:
+      "Yes. Doorstep grooming is available in selected cities across Bangladesh.",
+  },
+  {
+    question: "Do you provide emergency ambulance?",
+    answer:
+      "Yes. Emergency ambulance service is available 24/7 in supported locations.",
+  },
+  {
+    question: "How do vaccination reminders work?",
+    answer:
+      "You'll receive automatic reminders before your pet's next vaccination date.",
+  },
+  {
+    question: "Are medical records secure?",
+    answer:
+      "Absolutely. Your pet's medical history is stored securely and accessible only by authorized users.",
+  },
+];
 
   const categories: {
     id: PageName;
@@ -281,7 +343,134 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Emergency Hotline Banner */}
+
+      {/* ================= Testimonials ================= */}
+
+<section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+<div className="text-center mb-12">
+<h2 className="text-4xl font-black text-slate-900">
+What Our Pet Owners Say
+</h2>
+
+<p className="text-slate-500 mt-3">
+Trusted by thousands of pet lovers across Bangladesh.
+</p>
+
+</div>
+
+<div className="grid md:grid-cols-3 gap-8">
+
+{testimonials.map((item,index)=>(
+
+<div
+key={index}
+className="bg-white hover:bg-emerald-50 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+
+<div className="flex items-center gap-1 mb-5">
+
+{[1,2,3,4,5].map(star=>(
+<Star
+key={star}
+className="w-5 h-5 fill-yellow-400 text-yellow-400"
+/>
+))}
+
+</div>
+
+<Quote className="w-10 h-10 text-emerald-500 mb-5"/>
+
+<p className="text-slate-600 leading-relaxed">
+{item.review}
+</p>
+
+<div className="flex items-center gap-4 mt-8">
+
+<UserCircle className="w-12 h-12 text-emerald-600"/>
+
+<div>
+
+<h4 className="font-bold">
+{item.name}
+</h4>
+
+<p className="text-sm text-slate-500">
+{item.city}
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+))}
+
+</div>
+
+</section>
+
+{/* ================= FAQ ================= */}
+
+<section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+
+<div className="text-center mb-10">
+
+<h2 className="text-4xl font-black">
+Frequently Asked Questions
+</h2>
+
+<p className="text-slate-500 mt-3">
+Everything you need to know about FurCare.
+</p>
+
+</div>
+
+<div className="space-y-5">
+
+{faqs.map((faq,index)=>(
+
+<div
+key={index}
+className="bg-white rounded-2xl shadow-md overflow-hidden">
+
+<button
+
+onClick={()=>setOpenFAQ(openFAQ===index?null:index)}
+
+className="w-full flex justify-between items-center px-6 py-5 text-left font-bold hover:bg-emerald-50 transition">
+
+<span>{faq.question}</span>
+
+<ChevronDown
+
+className={`transition-transform ${
+openFAQ===index?"rotate-180":""
+}`}
+
+/>
+
+</button>
+
+{openFAQ===index && (
+
+<div className="px-6 pb-6 text-slate-600 leading-relaxed">
+
+{faq.answer}
+
+</div>
+
+)}
+
+</div>
+
+))}
+
+</div>
+
+</section>
+
+   {/* Emergency Hotline Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 rounded-3xl p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-emerald-700/50">
           <div className="flex items-center gap-4">
@@ -312,3 +501,4 @@ export const HomePage: React.FC = () => {
     </div>
   );
 };
+
