@@ -2,181 +2,443 @@ import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { getTranslation } from "../translations/i18n";
 import {
-  ShieldCheck,
-  Calendar,
-  AlertCircle,
-  CheckCircle2,
+  PawPrint,
+  Syringe,
   Clock,
-  Heart,
-  FileText,
+  CheckCircle2,
+  Calendar,
   Plus,
+  ArrowRight,
+  ShieldCheck,
+  Bell,
+  FileSpreadsheet,
   Stethoscope,
-  ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 
 export const VaccinationPage: React.FC = () => {
   const { language, pets, activePetId, setActivePetId, setActivePage } = useApp();
 
+  // Active pet reference
   const activePet = pets.find((p) => p.id === activePetId) || pets[0];
 
+  // Modal / Form states for wireframe buttons
+  const [showAddPetModal, setShowAddPetModal] = useState(false);
+  const [showAddVaccineModal, setShowAddVaccineModal] = useState(false);
+
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 space-y-8 font-sans text-slate-800">
       
-      {/* Title */}
-      <div className="max-w-4xl mx-auto text-center space-y-2">
-        <span className="px-3 py-1 bg-teal-100 text-teal-800 text-xs font-extrabold uppercase rounded-full">
-          Smart Health Passport
-        </span>
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-display">
-          {getTranslation(language, "passportTitle")}
+      {/* Top Main Heading */}
+      <div className="max-w-5xl mx-auto text-center space-y-1">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Vaccination
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
-          {language === "bn"
-            ? "আপনার পোষা প্রাণীর ডিজিটাল হেলথ পাসপোর্ট। টিকাদানের ইতিহাস, অ্যালার্জি ও মেডিকেল ফাইল নিরাপদ ট্র্যাকিং।"
-            : "Digital immunization records, allergy notes, surgeries & real-time automated vaccine due alerts."}
+        <p className="text-xs sm:text-sm text-slate-500 font-medium">
+          Protect your pet. Keep vaccinations up to date.
         </p>
       </div>
 
-      {/* Pet Selector Bar */}
-      <div className="max-w-3xl mx-auto bg-white p-3 rounded-2xl shadow-md border border-slate-200 flex items-center justify-between gap-4">
-        <span className="text-xs font-bold text-slate-700">Select Pet Passport:</span>
-        <div className="flex items-center gap-2 overflow-x-auto">
-          {pets.map((pet) => (
-            <button
-              key={pet.id}
-              onClick={() => setActivePetId(pet.id)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                pet.id === activePet.id
-                  ? "bg-teal-600 text-white border-teal-600 shadow-xs"
-                  : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-              }`}
-            >
-              <img
-                src={pet.photoUrl}
-                alt={pet.name}
-                className="w-5 h-5 rounded-full object-cover"
-              />
-              <span>{pet.name}</span>
-            </button>
-          ))}
+      {/* Main Content Split Grid (My Pets vs Vaccination Schedule) */}
+      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        
+        {/* Left Column: My Pets */}
+        <div className="md:col-span-5 bg-white border border-emerald-100 rounded-2xl p-5 shadow-lg shadow-emerald-500/10 space-y-4">
+          <div className="text-center space-y-1 pb-2 border-b border-slate-100">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center justify-center gap-2">
+              <PawPrint className="w-5 h-5 text-emerald-600" />
+              <span>My Pets</span>
+            </h2>
+            <p className="text-xs text-slate-500">
+              Select a pet to view vaccination details.
+            </p>
+          </div>
+
+          {/* Pet Cards List */}
+          <div className="space-y-3">
+            {pets.map((pet) => {
+              const isSelected = pet.id === activePet?.id;
+              return (
+                <div
+                  key={pet.id}
+                  onClick={() => setActivePetId(pet.id)}
+                  className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
+                    isSelected
+                      ? "border-emerald-500 bg-emerald-50/40 shadow-xs"
+                      : "border-slate-200 hover:border-emerald-200 bg-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3.5">
+                    {/* Image Placeholder Frame */}
+                    <div className="w-14 h-14 rounded-lg bg-slate-100 border border-slate-300 overflow-hidden shrink-0 flex items-center justify-center">
+                      {pet.photoUrl ? (
+                        <img
+                          src={pet.photoUrl}
+                          alt={pet.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <PawPrint className="w-6 h-6 text-slate-400" />
+                      )}
+                    </div>
+
+                    <div className="space-y-0.5">
+                      <h3 className="font-extrabold text-slate-900 text-sm">
+                        {pet.name}
+                      </h3>
+                      <p className="text-xs text-slate-600 font-medium capitalize">
+                        {pet.species} / {pet.breed}
+                      </p>
+                      <p className="text-[11px] text-slate-500 flex items-center gap-1 font-medium pt-0.5">
+                        <Calendar className="w-3 h-3 text-slate-400" />
+                        <span>Age: {pet.ageYears} yrs</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <ArrowRight
+                    className={`w-4 h-4 transition-transform ${
+                      isSelected ? "text-emerald-600 translate-x-1" : "text-slate-300"
+                    }`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Add New Pet Button */}
+          <button
+            onClick={() => setShowAddPetModal(true)}
+            className="w-full py-2.5 px-4 bg-white hover:bg-emerald-50/50 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 hover:border-emerald-300 shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5] text-emerald-600" />
+            <span>Add New Pet</span>
+          </button>
         </div>
-      </div>
 
-      {activePet && (
-        <div className="max-w-5xl mx-auto space-y-8">
+        {/* Right Column: Vaccination Schedule & History */}
+        <div className="md:col-span-7 bg-white border border-emerald-100 rounded-2xl p-5 shadow-lg shadow-emerald-500/10 space-y-6">
           
-          {/* Pet Digital Card Hero */}
-          <div className="bg-gradient-to-r from-teal-900 via-slate-900 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-teal-700/50 flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <img
-                src={activePet.photoUrl}
-                alt={activePet.name}
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover ring-4 ring-teal-500/50 shadow-md"
-              />
-              <div className="space-y-1">
-                <span className="px-2.5 py-0.5 bg-teal-500/20 text-teal-300 border border-teal-400/30 text-[10px] font-mono font-bold rounded-md">
-                  PASSPORT ID: #{activePet.id}
-                </span>
-                <h2 className="text-2xl sm:text-3xl font-black font-display">{activePet.name}</h2>
-                <p className="text-xs text-slate-300 font-medium">
-                  {activePet.species.toUpperCase()} • {activePet.breed} • {activePet.ageYears} yrs {activePet.ageMonths} mos • {activePet.weightKg} kg
-                </p>
-                {activePet.microchipId && (
-                  <p className="text-[11px] text-teal-400 font-mono">Microchip: {activePet.microchipId}</p>
-                )}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setActivePage("vet")}
-              className="shrink-0 px-5 py-3 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs rounded-2xl shadow-md transition-all flex items-center gap-2"
-            >
-              <Stethoscope className="w-4 h-4" />
-              <span>{getTranslation(language, "bookVaccineAppt")}</span>
-            </button>
+          {/* Header */}
+          <div className="text-center space-y-1 pb-2 border-b border-slate-100">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center justify-center gap-2">
+              <Syringe className="w-5 h-5 text-emerald-600" />
+              <span>Vaccination Schedule</span>
+            </h2>
+            <p className="text-xs text-slate-500">
+              View and manage your pet's vaccinations.
+            </p>
           </div>
 
-          {/* Vaccine Due Notification Banner */}
-          <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between gap-4 text-xs text-amber-900">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
-              <div>
-                <p className="font-bold">Next Vaccine Scheduled Due: 15 July 2026</p>
-                <p className="text-[11px] text-amber-800">
-                  Rabies & Parvovirus booster due in 12 days. Real-time notifications enabled.
-                </p>
-              </div>
+          {/* Select Pet Dropdown */}
+          <div className="space-y-1">
+            <div className="relative">
+              <select
+                value={activePet?.id || ""}
+                onChange={(e) => setActivePetId(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-800 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 cursor-pointer"
+              >
+                {pets.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} ({p.species})
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3.5 top-3 pointer-events-none" />
             </div>
-            <button
-              onClick={() => setActivePage("vet")}
-              className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shrink-0"
-            >
-              Book Doctor
-            </button>
           </div>
 
-          {/* Vaccination Records Table */}
-          <div className="bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4">
-            <h3 className="text-lg font-black text-slate-900 font-display flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-teal-600" />
-              <span>{getTranslation(language, "vaccineHistory")}</span>
+          {/* Upcoming Vaccinations Section */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+              Upcoming Vaccinations
             </h3>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-slate-200 text-slate-400 uppercase text-[10px] font-bold">
-                    <th className="py-3 px-2">Vaccine Name</th>
-                    <th className="py-3 px-2">Given Date</th>
-                    <th className="py-3 px-2">Next Due Date</th>
-                    <th className="py-3 px-2">Veterinarian</th>
-                    <th className="py-3 px-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium">
-                  {activePet.vaccinations.map((v) => (
-                    <tr key={v.id} className="hover:bg-slate-50">
-                      <td className="py-3.5 px-2 font-bold text-slate-900">{v.vaccineName}</td>
-                      <td className="py-3.5 px-2 text-slate-600">{v.givenDate}</td>
-                      <td className="py-3.5 px-2 font-bold text-teal-700">{v.nextDueDate}</td>
-                      <td className="py-3.5 px-2 text-slate-600">{v.veterinarian}</td>
-                      <td className="py-3.5 px-2">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                            v.status === "completed"
-                              ? "bg-emerald-100 text-emerald-800"
-                              : "bg-amber-100 text-amber-800"
-                          }`}
-                        >
-                          {v.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="space-y-2.5">
+              {/* Upcoming Item 1 */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100/60 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-emerald-700" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900">Rabies Booster</p>
+                    <p className="text-[11px] text-slate-500">Recommended at 12 weeks</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1 justify-end">
+                    <Calendar className="w-3 h-3 text-slate-400" />
+                    <span>Due on</span>
+                  </p>
+                  <p className="font-bold text-slate-900 text-xs">15/08/2026</p>
+                </div>
+              </div>
+
+              {/* Upcoming Item 2 */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100/60 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-emerald-700" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900">DHPP / Parvovirus</p>
+                    <p className="text-[11px] text-slate-500">Recommended at 16 weeks</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1 justify-end">
+                    <Calendar className="w-3 h-3 text-slate-400" />
+                    <span>Due on</span>
+                  </p>
+                  <p className="font-bold text-slate-900 text-xs">10/10/2026</p>
+                </div>
+              </div>
+
+              {/* Upcoming Item 3 */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100/60 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-emerald-700" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-slate-900">Deworming & Kennel Cough</p>
+                    <p className="text-[11px] text-slate-500">Recommended at 1 year</p>
+                  </div>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1 justify-end">
+                    <Calendar className="w-3 h-3 text-slate-400" />
+                    <span>Due on</span>
+                  </p>
+                  <p className="font-bold text-slate-900 text-xs">05/01/2027</p>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Post-Vaccination Care Tips */}
-          <div className="bg-teal-50 border border-teal-200/80 rounded-3xl p-6 space-y-3">
-            <h4 className="font-bold text-teal-900 text-sm flex items-center gap-2">
-              <Heart className="w-4 h-4 text-teal-600" />
-              <span>{getTranslation(language, "postVaccineTips")}</span>
-            </h4>
-            <ul className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-teal-950 font-medium">
-              <li className="p-3 bg-white rounded-2xl border border-teal-200">
-                1. Ensure 24 hours of quiet rest and warm sleeping area.
-              </li>
-              <li className="p-3 bg-white rounded-2xl border border-teal-200">
-                2. Keep the injection site dry and unrubbed for 24 hours.
-              </li>
-              <li className="p-3 bg-white rounded-2xl border border-teal-200">
-                3. Offer fresh water and avoid strenuous exercise for 2 days.
-              </li>
+          <hr className="border-slate-200" />
+
+          {/* Vaccination History Section */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+              Vaccination History
+            </h3>
+
+            <div className="space-y-2.5">
+              {activePet?.vaccinations && activePet.vaccinations.length > 0 ? (
+                activePet.vaccinations.map((vac) => (
+                  <div
+                    key={vac.id}
+                    className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-900">{vac.vaccineName}</p>
+                        <p className="text-[11px] text-slate-500">Given on {vac.givenDate}</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[11px] text-slate-500 font-medium">Next due</p>
+                      <p className="font-bold text-slate-900 text-xs">{vac.nextDueDate}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-900">Core Feline Tricat / Core Distemper</p>
+                        <p className="text-[11px] text-slate-500">Given on 12/01/2026</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[11px] text-slate-500 font-medium">Next due</p>
+                      <p className="font-bold text-slate-900 text-xs">12/01/2027</p>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-slate-50/80 border border-slate-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-slate-900">Rabies Primary Dose</p>
+                        <p className="text-[11px] text-slate-500">Given on 04/03/2025</p>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[11px] text-slate-500 font-medium">Next due</p>
+                      <p className="font-bold text-slate-900 text-xs">04/03/2026</p>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Add Vaccination Record Button */}
+          <button
+            onClick={() => setShowAddVaccineModal(true)}
+            className="w-full py-2.5 px-4 bg-white hover:bg-emerald-50/50 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 hover:border-emerald-300 shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5] text-emerald-600" />
+            <span>Add Vaccination Record</span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* 4 Feature Highlights Grid */}
+      <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-4">
+        
+        {/* Card 1 */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center space-y-2 shadow-sm hover:shadow-emerald-500/10 transition-shadow">
+          <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto">
+            <ShieldCheck className="w-5 h-5 text-emerald-600" />
+          </div>
+          <h4 className="font-black text-slate-900 text-xs">Keep Them Protected</h4>
+          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+            Vaccinations help prevent serious diseases.
+          </p>
+        </div>
+
+        {/* Card 2 */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center space-y-2 shadow-sm hover:shadow-emerald-500/10 transition-shadow">
+          <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto">
+            <Bell className="w-5 h-5 text-emerald-600" />
+          </div>
+          <h4 className="font-black text-slate-900 text-xs">Timely Reminders</h4>
+          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+            Get notified before vaccines are due.
+          </p>
+        </div>
+
+        {/* Card 3 */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center space-y-2 shadow-sm hover:shadow-emerald-500/10 transition-shadow">
+          <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto">
+            <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+          </div>
+          <h4 className="font-black text-slate-900 text-xs">Health Records</h4>
+          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+            Track and manage your pet's vaccination history.
+          </p>
+        </div>
+
+        {/* Card 4 */}
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 text-center space-y-2 shadow-sm hover:shadow-emerald-500/10 transition-shadow">
+          <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center mx-auto">
+            <Stethoscope className="w-5 h-5 text-emerald-600" />
+          </div>
+          <h4 className="font-black text-slate-900 text-xs">Vet Approved</h4>
+          <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+            All vaccines are recommended by vets.
+          </p>
+        </div>
+
+      </div>
+
+      {/* Wireframe Platform Footer */}
+      <div className="max-w-5xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-xs space-y-6 mt-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-xs">
+          
+          <div className="space-y-2">
+            <h5 className="font-extrabold text-slate-900 text-sm">FurCare</h5>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
+              Complete healthcare, emergency & lifestyle platform for your beloved pets in Bangladesh.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <h5 className="font-extrabold text-slate-900 text-sm">Services</h5>
+            <ul className="space-y-1.5 text-slate-600 font-medium text-[11px]">
+              <li onClick={() => setActivePage("adoption")} className="hover:text-emerald-600 cursor-pointer">Adoption</li>
+              <li onClick={() => setActivePage("vet")} className="hover:text-emerald-600 cursor-pointer">Vet Appointment</li>
+              <li onClick={() => setActivePage("services")} className="hover:text-emerald-600 cursor-pointer">Grooming</li>
+              <li onClick={() => setActivePage("services")} className="hover:text-emerald-600 cursor-pointer">Pet Hotel</li>
             </ul>
           </div>
 
+          <div className="space-y-2">
+            <h5 className="font-extrabold text-slate-900 text-sm">Care</h5>
+            <ul className="space-y-1.5 text-slate-600 font-medium text-[11px]">
+              <li onClick={() => setActivePage("vaccination")} className="hover:text-emerald-600 cursor-pointer">Vaccination Records</li>
+              <li onClick={() => setActivePage("lost-found")} className="hover:text-emerald-600 cursor-pointer">Lost & Found</li>
+              <li onClick={() => setActivePage("premium")} className="hover:text-emerald-600 cursor-pointer">Premium</li>
+              <li onClick={() => setActivePage("reminders")} className="hover:text-emerald-600 cursor-pointer">Reminders</li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <h5 className="font-extrabold text-slate-900 text-sm">Account</h5>
+            <ul className="space-y-1.5 text-slate-600 font-medium text-[11px]">
+              <li onClick={() => setActivePage("dashboard")} className="hover:text-emerald-600 cursor-pointer">Sign in</li>
+              <li onClick={() => setActivePage("dashboard")} className="hover:text-emerald-600 cursor-pointer">Dashboard</li>
+              <li onClick={() => setActivePage("shop")} className="hover:text-emerald-600 cursor-pointer">Shop</li>
+              <li onClick={() => setActivePage("cart")} className="hover:text-emerald-600 cursor-pointer">Cart</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <div className="border-t border-slate-200 pt-4 text-center text-[11px] text-slate-500 flex items-center justify-center gap-1 font-medium">
+          <span>© 2026 FurCare · Made with</span>
+          <PawPrint className="w-3.5 h-3.5 text-emerald-600 inline" />
+          <span>in Bangladesh</span>
+        </div>
+      </div>
+
+      {/* Modal Placeholders */}
+      {(showAddPetModal || showAddVaccineModal) && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-xl border border-slate-200 text-center">
+            <h3 className="font-bold text-slate-900 text-base">
+              {showAddPetModal ? "Add New Pet" : "Add Vaccination Record"}
+            </h3>
+            <p className="text-xs text-slate-600">
+              {showAddPetModal
+                ? "Enter your pet's information to manage their immunization passport."
+                : "Record a newly completed vaccine dose for " + activePet?.name}
+            </p>
+            <div className="space-y-2 text-left text-xs">
+              <input
+                type="text"
+                placeholder={showAddPetModal ? "Pet Name" : "Vaccine Name"}
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <input
+                type="date"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setShowAddPetModal(false);
+                  setShowAddVaccineModal(false);
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddPetModal(false);
+                  setShowAddVaccineModal(false);
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg cursor-pointer"
+              >
+                Save
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
