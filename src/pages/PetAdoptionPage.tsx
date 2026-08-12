@@ -26,6 +26,45 @@ export const PetAdoptionPage: React.FC = () => {
   const [selectedBehaviour, setSelectedBehaviour] = useState<string>("all");
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>("all");
 
+  const speciesOptions = [
+    { value: "all", label: language === "bn" ? "সব" : "All" },
+    { value: "dog", label: "Dog" },
+    { value: "cat", label: "Cat" },
+    { value: "rabbit", label: "Rabbit" },
+    { value: "bird", label: "Bird" },
+  ];
+
+  const behaviourOptions = [
+    { value: "all", label: language === "bn" ? "যেকোন" : "Any" },
+    { value: "playful", label: "Playful" },
+    { value: "calm", label: "Calm" },
+    { value: "energetic", label: "Energetic" },
+    { value: "gentle", label: "Gentle" },
+    { value: "curious", label: "Curious" },
+    { value: "friendly", label: "Friendly" },
+    { value: "loyal", label: "Loyal" },
+    { value: "shy", label: "Shy" },
+  ];
+
+  const colorOptions = [
+    { value: "all", label: language === "bn" ? "যেকোন" : "Any" },
+    { value: "Golden", label: "Golden" },
+    { value: "Black", label: "Black" },
+    { value: "White", label: "White" },
+    { value: "Brown", label: "Brown" },
+    { value: "Tri-color", label: "Tri-color" },
+    { value: "Orange Tabby", label: "Orange Tabby" },
+    { value: "Black & Tan", label: "Black & Tan" },
+  ];
+
+  const ageOptions = [
+    { value: "all", label: language === "bn" ? "যেকোন বয়স" : "Any" },
+    { value: "young-0-6", label: "0–6 Months" },
+    { value: "young-6-12", label: "6–12 Months" },
+    { value: "adult-1-2", label: "1–2 Years" },
+    { value: "adult-2plus", label: "2+ Years" },
+  ];
+
   // Tinder Swipe Card State
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
@@ -40,6 +79,10 @@ export const PetAdoptionPage: React.FC = () => {
     if (selectedBehaviour !== "all" && pet.behaviour !== selectedBehaviour) return false;
     if (selectedAgeGroup === "young" && pet.ageMonths > 12) return false;
     if (selectedAgeGroup === "adult" && pet.ageMonths <= 12) return false;
+    if (selectedAgeGroup === "young-0-6" && pet.ageMonths > 6) return false;
+    if (selectedAgeGroup === "young-6-12" && (pet.ageMonths <= 6 || pet.ageMonths > 12)) return false;
+    if (selectedAgeGroup === "adult-1-2" && (pet.ageMonths <= 12 || pet.ageMonths > 24)) return false;
+    if (selectedAgeGroup === "adult-2plus" && pet.ageMonths <= 24) return false;
     return true;
   });
 
@@ -78,12 +121,12 @@ export const PetAdoptionPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="min-h-screen bg-[#F8F7F3] py-10 px-4 sm:px-6 lg:px-8 space-y-10">
       
       {/* Title */}
       <div className="max-w-4xl mx-auto text-center space-y-2">
-        <span className="px-3 py-1 bg-rose-100 text-rose-700 text-xs font-extrabold uppercase rounded-full">
-          Tinder Style Adoption
+        <span className="px-3 py-1 text-xs font-extrabold uppercase rounded-full" style={{ background: "#FFF4D6", color: "#A54A00" }}>
+        Adoption
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-display">
           {getTranslation(language, "adoptionHeader")}
@@ -96,128 +139,121 @@ export const PetAdoptionPage: React.FC = () => {
       </div>
 
       {/* Preference Survey Horizontal Option Boxes */}
-      <div className="max-w-5xl mx-auto bg-white rounded-3xl p-6 shadow-md border border-slate-200 space-y-4" id="adoption-survey-boxes">
+      <div
+        className="max-w-4xl mx-auto rounded-3xl p-5 shadow-md border border-slate-200 space-y-4"
+        id="adoption-survey-boxes"
+        style={{ background: "#355E3B" }}
+      >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-            <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+          <div className="flex items-center gap-2 text-xs font-bold text-white">
+            <SlidersHorizontal className="w-4 h-4 text-white" />
             <span>{language === "bn" ? "পছন্দের বৈশিষ্ট্য নির্বাচন করুন (Survey Preferences)" : "Pet Desirable Preference Survey"}</span>
           </div>
-          <span className="text-[11px] font-semibold text-emerald-600">
+          <span className="text-[11px] font-semibold text-white">
             {language === "bn" ? `ম্যাচ করা পেট সংখ্যা: ${filteredListings.length}` : `Matched Pets: ${filteredListings.length}`}
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
-          {/* Species */}
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 block text-[11px]">{language === "bn" ? "প্রাণীর ধরন" : "Pet Type"}</label>
-            <select
-              value={selectedSpecies}
-              onChange={(e) => {
-                setSelectedSpecies(e.target.value as any);
-                setCurrentIndex(0);
-              }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-            >
-              <option value="all">{language === "bn" ? "সব (কুকুর/বিড়াল/খরগোশ)" : "All Pets"}</option>
-              <option value="dog">{language === "bn" ? "কুকুর (Dog)" : "Dog"}</option>
-              <option value="cat">{language === "bn" ? "বিড়াল (Cat)" : "Cat"}</option>
-              <option value="rabbit">{language === "bn" ? "খরগোশ (Rabbit)" : "Rabbit"}</option>
-            </select>
+        <div className="space-y-5 text-xs">
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-bold text-slate-900">{language === "bn" ? "প্রাণীর ধরন" : "Pet Type"}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {speciesOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setSelectedSpecies(option.value as PetSpecies | "all");
+                    setCurrentIndex(0);
+                  }}
+                  className={`rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-200 ${
+                    selectedSpecies === option.value
+                      ? "bg-[#DFF5E1] text-[#355E3B] border-2 border-[#355E3B] hover:bg-[#CFE6D2]"
+                      : "bg-white text-[#374151] border border-[#D1D5DB] hover:bg-[#F3F4F6]"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Breed */}
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 block text-[11px]">{language === "bn" ? "ব্রিড" : "Breed"}</label>
-            <select
-              value={selectedBreed}
-              onChange={(e) => {
-                setSelectedBreed(e.target.value);
-                setCurrentIndex(0);
-              }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-            >
-              <option value="all">{getTranslation(language, "adoptionFilterBreed")}</option>
-              <option value="Golden Retriever">Golden Retriever</option>
-              <option value="Persian Classic">Persian Classic</option>
-              <option value="Holland Lop">Holland Lop</option>
-              <option value="German Shepherd">German Shepherd</option>
-            </select>
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-bold text-slate-900">{language === "bn" ? "আচরণ" : "Behavior"}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {behaviourOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setSelectedBehaviour(option.value);
+                    setCurrentIndex(0);
+                  }}
+                  className={`rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-200 ${
+                    selectedBehaviour === option.value
+                      ? "bg-[#DFF5E1] text-[#355E3B] border-2 border-[#355E3B] hover:bg-[#CFE6D2]"
+                      : "bg-white text-[#374151] border border-[#D1D5DB] hover:bg-[#F3F4F6]"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Color */}
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 block text-[11px]">{language === "bn" ? "রঙ" : "Color"}</label>
-            <select
-              value={selectedColor}
-              onChange={(e) => {
-                setSelectedColor(e.target.value);
-                setCurrentIndex(0);
-              }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-            >
-              <option value="all">{getTranslation(language, "adoptionFilterColor")}</option>
-              <option value="Golden Brown">Golden Brown</option>
-              <option value="Pure White">Pure White</option>
-              <option value="Cream White">Cream White</option>
-              <option value="White & Caramel">White & Caramel</option>
-              <option value="Black & Tan">Black & Tan</option>
-            </select>
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-bold text-slate-900">{language === "bn" ? "রঙ" : "Color"}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {colorOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setSelectedColor(option.value);
+                    setCurrentIndex(0);
+                  }}
+                  className={`rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-200 ${
+                    selectedColor === option.value
+                      ? "bg-[#DFF5E1] text-[#355E3B] border-2 border-[#355E3B] hover:bg-[#CFE6D2]"
+                      : "bg-white text-[#374151] border border-[#D1D5DB] hover:bg-[#F3F4F6]"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Behavior */}
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 block text-[11px]">{language === "bn" ? "আচরণ" : "Behavior"}</label>
-            <select
-              value={selectedBehaviour}
-              onChange={(e) => {
-                setSelectedBehaviour(e.target.value);
-                setCurrentIndex(0);
-              }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-            >
-              <option value="all">{language === "bn" ? "সকল আচরণ" : "All Behaviors"}</option>
-              <option value="friendly">Friendly (বন্ধুভাবাপন্ন)</option>
-              <option value="calm">Calm (শান্ত)</option>
-              <option value="playful">Playful (চঞ্চল)</option>
-              <option value="energetic">Energetic (কর্মঠ)</option>
-            </select>
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <span className="font-bold text-slate-900">{language === "bn" ? "বয়স" : "Age"}</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {ageOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setSelectedAgeGroup(option.value);
+                    setCurrentIndex(0);
+                  }}
+                  className={`rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-200 ${
+                    selectedAgeGroup === option.value
+                      ? "bg-[#DFF5E1] text-[#355E3B] border-2 border-[#355E3B] hover:bg-[#CFE6D2]"
+                      : "bg-white text-[#374151] border border-[#D1D5DB] hover:bg-[#F3F4F6]"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
-
-          {/* Age Group */}
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 block text-[11px]">{language === "bn" ? "বয়স" : "Age Group"}</label>
-            <select
-              value={selectedAgeGroup}
-              onChange={(e) => {
-                setSelectedAgeGroup(e.target.value);
-                setCurrentIndex(0);
-              }}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-            >
-              <option value="all">{language === "bn" ? "সকল বয়স" : "All Ages"}</option>
-              <option value="young">Junior / Pup (≤ 1 yr)</option>
-              <option value="adult">Adult (&gt; 1 yr)</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Matched IDs Bar */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-[11px]">
-          <span className="font-bold text-slate-600">{getTranslation(language, "matchedPetTitle")}:</span>
-          {filteredListings.length > 0 ? (
-            filteredListings.map((p) => (
-              <span
-                key={p.pet_id}
-                onClick={() => setSelectedPetForModal(p)}
-                className="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-md font-mono font-bold cursor-pointer hover:bg-emerald-100"
-              >
-                #{p.pet_id} ({p.name})
-              </span>
-            ))
-          ) : (
-            <span className="text-rose-500 font-semibold">No pets matched this criteria. Reset filters.</span>
-          )}
         </div>
       </div>
 
@@ -248,7 +284,7 @@ export const PetAdoptionPage: React.FC = () => {
             </div>
 
             <div className="absolute top-4 right-4">
-              <span className="px-3 py-1 bg-emerald-600 text-white rounded-full text-xs font-bold shadow-sm">
+              <span className="px-3 py-1 bg-[#355E3B] text-white rounded-full text-xs font-bold shadow-sm">
                 {currentPet.vaccinated ? "Vaccinated: Yes" : "Vaccinated: No"}
               </span>
             </div>
