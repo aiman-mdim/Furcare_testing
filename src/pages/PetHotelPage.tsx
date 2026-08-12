@@ -76,31 +76,31 @@ export const PetHotelPage: React.FC = () => {
       </div>
 
       {/* Hotel Search & Filter System */}
-      <div className="max-w-5xl mx-auto bg-white p-4 rounded-3xl shadow-md border border-slate-200 space-y-4" id="hotel-filter-system">
+      <div className="max-w-5xl mx-auto bg-[#14532D] p-4 rounded-3xl shadow-[0_12px_35px_rgba(20,83,45,0.22)] border border-emerald-800/40 space-y-4" id="hotel-filter-system">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
           
           {/* Search Location */}
           <div className="space-y-1">
-            <label className="font-bold text-slate-700 block">Search Location / Hotel</label>
-            <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 flex items-center gap-2">
-              <Search className="w-4 h-4 text-slate-400" />
+            <label className="font-bold text-white block">Search Location / Hotel</label>
+            <div className="bg-emerald-50/95 border border-emerald-200 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
+              <Search className="w-4 h-4 text-emerald-700" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="e.g. Gulshan, Uttara, Khulshi..."
-                className="w-full bg-transparent focus:outline-none"
+                className="w-full bg-transparent text-slate-800 placeholder:text-slate-400 focus:outline-none"
               />
             </div>
           </div>
 
           {/* City */}
           <div className="space-y-1">
-            <label className="font-bold text-slate-700 block">City</label>
+            <label className="font-bold text-white block">City</label>
             <select
               value={selectedCity}
               onChange={(e) => setSelectedCity(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none"
+              className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-medium text-slate-800 focus:outline-none shadow-sm"
             >
               <option value="all">All Cities</option>
               <option value="Dhaka">Dhaka</option>
@@ -111,11 +111,11 @@ export const PetHotelPage: React.FC = () => {
 
           {/* Room Type */}
           <div className="space-y-1">
-            <label className="font-bold text-slate-700 block">Room Category</label>
+            <label className="font-bold text-white block">Room Category</label>
             <select
               value={selectedRoomType}
               onChange={(e) => setSelectedRoomType(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none"
+              className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-medium text-slate-800 focus:outline-none shadow-sm"
             >
               <option value="all">All Rooms</option>
               <option value="Standard Room">Standard Room</option>
@@ -126,7 +126,7 @@ export const PetHotelPage: React.FC = () => {
 
           {/* Duration Days */}
           <div className="space-y-1">
-            <label className="font-bold text-slate-700 block">Stay Duration (Days)</label>
+            <label className="font-bold text-white block">Stay Duration (Days)</label>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -134,9 +134,9 @@ export const PetHotelPage: React.FC = () => {
                 max="30"
                 value={bookingDays}
                 onChange={(e) => setBookingDays(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center"
+                className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-bold text-center text-slate-800 shadow-sm"
               />
-              <span className="font-bold text-slate-600">Days</span>
+              <span className="font-bold text-emerald-100">Days</span>
             </div>
           </div>
 
@@ -144,13 +144,13 @@ export const PetHotelPage: React.FC = () => {
       </div>
 
       {/* Hotel Cards List */}
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {filteredHotels.map((hotel) => (
           <div
             key={hotel.id}
-            className="bg-white rounded-3xl p-6 shadow-md border border-slate-200 hover:shadow-xl transition-all grid grid-cols-1 md:grid-cols-12 gap-6 items-center"
+            className="bg-white rounded-3xl shadow-md border border-slate-200 hover:shadow-xl transition-all overflow-hidden h-full flex flex-col justify-between"
           >
-            <div className="md:col-span-4 relative rounded-2xl overflow-hidden h-52">
+            <div className="relative h-44">
               <img
                 src={hotel.image}
                 alt={hotel.name}
@@ -161,49 +161,50 @@ export const PetHotelPage: React.FC = () => {
               </span>
             </div>
 
-            <div className="md:col-span-5 space-y-3">
+            <div className="p-5 flex flex-col flex-1 space-y-3">
               <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-xl font-black text-slate-900 font-display">{hotel.name}</h3>
-                </div>
-                <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                <h3 className="text-lg font-black text-slate-900 font-display">{hotel.name}</h3>
+                <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
                   <MapPin className="w-3.5 h-3.5 text-rose-500" />
                   <span>{hotel.location}, {hotel.city}</span>
                 </p>
               </div>
 
-              <div className="flex items-center gap-1 text-xs font-bold text-amber-500">
+              <div className="flex items-center gap-1 text-xs font-bold text-[#14532D]">
                 <Star className="w-4 h-4 fill-current" />
                 <span>{hotel.rating} Rating ({hotel.reviewsCount} reviews)</span>
-                <span className="text-slate-400 font-normal ml-2">• {hotel.availableRooms} rooms available</span>
+              </div>
+
+              <div className="text-[11px] text-slate-500">
+                {hotel.availableRooms} rooms available
               </div>
 
               <ul className="space-y-1 text-xs text-slate-600">
-                {(language === "bn" ? hotel.featuresBn : hotel.featuresEn).map((f, i) => (
+                {(language === "bn" ? hotel.featuresBn : hotel.featuresEn).slice(0, 3).map((f, i) => (
                   <li key={i} className="flex items-center gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>{f}</span>
                   </li>
                 ))}
               </ul>
-            </div>
 
-            <div className="md:col-span-3 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 space-y-3 text-right">
-              <div>
-                <p className="text-xs text-slate-400 uppercase font-bold">Daily Rate</p>
-                <p className="text-2xl font-black text-slate-900 font-display">৳{hotel.dailyRateTk}</p>
-                <p className="text-[11px] text-emerald-600 font-bold">
-                  Total for {bookingDays} Days: ৳{hotel.dailyRateTk * bookingDays}
-                </p>
+              <div className="border-t border-slate-100 pt-3 mt-auto space-y-3">
+                <div>
+                  <p className="text-xs text-slate-400 uppercase font-bold">Daily Rate</p>
+                  <p className="text-xl font-black text-slate-900 font-display">৳{hotel.dailyRateTk}</p>
+                  <p className="text-[11px] text-emerald-600 font-bold">
+                    Total for {bookingDays} Days: ৳{hotel.dailyRateTk * bookingDays}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => handleBookHotel(hotel)}
+                  className="w-full py-3 bg-[#14532D] hover:bg-[#0f4224] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>{getTranslation(language, "bookHotelRoom")}</span>
+                </button>
               </div>
-
-              <button
-                onClick={() => handleBookHotel(hotel)}
-                className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-              >
-                <CreditCard className="w-4 h-4" />
-                <span>{getTranslation(language, "bookHotelRoom")}</span>
-              </button>
             </div>
           </div>
         ))}
