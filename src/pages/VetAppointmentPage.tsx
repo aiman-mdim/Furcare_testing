@@ -1,48 +1,111 @@
-import React from "react";
-// Import the image file directly from assets
-import doctorImg from "../assets/doctor.jpg";
+import React, { useState } from "react";
+import { mockVets } from "../data/mockData";
 
-export const VetDoctorCard: React.FC = () => {
+export const VetAppointmentPage: React.FC = () => {
+  const [selectedSlots, setSelectedSlots] = useState<{ [key: string]: string }>({});
+
+  const handleSlotSelect = (vetId: string, slot: string) => {
+    setSelectedSlots((prev) => ({
+      ...prev,
+      [vetId]: slot,
+    }));
+  };
+
   return (
-    <div className="max-w-3xl mx-auto p-4 font-sans">
-      <div className="bg-white rounded-3xl border border-slate-300 p-5 shadow-xs flex items-start justify-between gap-4">
-        
-        <div className="flex items-start gap-4">
-          {/* Avatar Box with Local Image */}
-          <div className="w-20 h-20 rounded-2xl border border-slate-300 bg-slate-50 overflow-hidden shrink-0">
-            <img
-              src={doctorImg}
-              alt="Dr. Sharmin Akter"
-              className="w-full h-full object-cover object-top"
-            />
-          </div>
+    <div className="max-w-7xl mx-auto px-4 py-8 font-sans">
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">Book Vet Appointment</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {mockVets.map((vet) => {
+          const selectedSlot = selectedSlots[vet.id];
 
-          {/* Details */}
-          <div className="space-y-1.5 text-sm text-slate-700">
-            <div>
-              <span className="font-bold text-slate-900">Doctor Name: </span>
-              <span className="font-bold text-blue-900">Dr. Sharmin Akter</span>
-            </div>
-            <div>
-              <span className="font-bold text-slate-900">Clinic Name: </span>
-              <span className="text-slate-600">Uttara Pet Care & Vaccination Hub</span>
-            </div>
-            <div className="text-slate-600">
-              <span className="font-bold text-slate-900">Location: </span>
-              <span>Uttara, Dhaka</span>
-            </div>
-          </div>
-        </div>
+          return (
+            <div 
+              key={vet.id} 
+              className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
+            >
+              {/* Doctor Header */}
+              <div className="flex items-start gap-4">
+                <div className="w-20 h-20 rounded-2xl border border-slate-100 bg-slate-50 overflow-hidden shrink-0">
+                  <img
+                    src={vet.photoUrl}
+                    alt={vet.name}
+                    className="w-full h-full object-cover object-top"
+                  />
+                </div>
 
-        {/* Fee & Rating */}
-        <div className="flex flex-col items-end justify-between self-stretch shrink-0">
-          <span className="font-extrabold text-slate-900 text-lg">৳700</span>
-          <div className="text-amber-500 font-bold text-xs">★ 4.8</div>
-        </div>
+                <div className="space-y-1">
+                  <h3 className="font-bold text-slate-900 text-lg leading-snug">{vet.name}</h3>
+                  <p className="text-sm font-semibold text-blue-600 leading-tight">
+                    {vet.specialty}
+                  </p>
+                  <p className="text-xs text-slate-500">{vet.qualification}</p>
+                </div>
+              </div>
 
+              {/* Location, Rating, and Fee */}
+              <div className="space-y-2 pt-2 border-t border-slate-100 text-sm">
+                <div className="flex items-center gap-2 text-slate-600 text-xs">
+                  <span className="text-red-500">📍</span>
+                  <span className="truncate">{vet.clinicName}, {vet.area}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1 font-bold text-amber-500">
+                    <span>★</span>
+                    <span>{vet.rating}</span>
+                    {vet.experienceYears && (
+                      <span className="text-amber-600/80 font-normal">
+                        ({vet.experienceYears} yrs exp)
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-extrabold text-slate-900 text-base">৳{vet.feeTk}</span>
+                </div>
+              </div>
+
+              {/* Slots */}
+              <div className="space-y-2 pt-1">
+                <p className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
+                  AVAILABLE SLOTS TODAY:
+                </p>
+                <div className="grid grid-cols-4 gap-2">
+                  {vet.availableTimes.map((slot) => {
+                    const isSelected = selectedSlot === slot;
+                    return (
+                      <button
+                        key={slot}
+                        onClick={() => handleSlotSelect(vet.id, slot)}
+                        className={`py-2 px-1 text-[11px] font-bold rounded-xl transition-all ${
+                          isSelected
+                            ? "bg-blue-600 text-white shadow-sm"
+                            : "bg-blue-50/70 text-blue-600 border border-blue-200 hover:bg-blue-100"
+                        }`}
+                      >
+                        {slot}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <button 
+                className={`w-full py-3 font-bold rounded-2xl transition-all active:scale-[0.98] ${
+                  selectedSlot 
+                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md" 
+                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                }`}
+                disabled={!selectedSlot}
+              >
+                {selectedSlot ? `Book Appointment (৳${vet.feeTk})` : "Select a Time Slot"}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 };
 
-export default VetDoctorCard;
+export default VetAppointmentPage;
