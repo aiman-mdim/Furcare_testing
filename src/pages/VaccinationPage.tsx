@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export const VaccinationPage: React.FC = () => {
-  const { language, pets, activePetId, setActivePetId, setActivePage } = useApp();
+  const { language, pets, activePetId, setActivePetId, setActivePage, requireAuth } = useApp();
 
   // Active pet reference
   const activePet = pets.find((p) => p.id === activePetId) || pets[0];
@@ -108,7 +108,7 @@ export const VaccinationPage: React.FC = () => {
 
           {/* Add New Pet Button */}
           <button
-            onClick={() => setShowAddPetModal(true)}
+            onClick={() => requireAuth() && setShowAddPetModal(true)}
             className="w-full py-2.5 px-4 bg-white hover:bg-emerald-50/50 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 hover:border-emerald-300 shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5] text-emerald-600" />
@@ -286,7 +286,7 @@ export const VaccinationPage: React.FC = () => {
 
           {/* Add Vaccination Record Button */}
           <button
-            onClick={() => setShowAddVaccineModal(true)}
+            onClick={() => requireAuth() && setShowAddVaccineModal(true)}
             className="w-full py-2.5 px-4 bg-white hover:bg-emerald-50/50 text-slate-800 font-bold text-xs rounded-xl border border-slate-300 hover:border-emerald-300 shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Plus className="w-4 h-4 stroke-[2.5] text-emerald-600" />
@@ -371,6 +371,7 @@ export const VaccinationPage: React.FC = () => {
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => {
+                  if (!requireAuth()) return;
                   setShowAddPetModal(false);
                   setShowAddVaccineModal(false);
                 }}
@@ -380,6 +381,7 @@ export const VaccinationPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
+                  if (!requireAuth()) return;
                   setShowAddPetModal(false);
                   setShowAddVaccineModal(false);
                 }}
