@@ -430,7 +430,6 @@ export const PetAdoptionPage: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
