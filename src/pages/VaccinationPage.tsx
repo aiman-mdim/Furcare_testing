@@ -391,7 +391,6 @@ export const VaccinationPage: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
