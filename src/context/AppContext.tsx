@@ -17,7 +17,6 @@ import {
 } from "../types";
 
 import {
-  initialPets,
   mockAdoptionListings,
 } from "../data/mockData";
 
@@ -118,6 +117,7 @@ const AppContext = createContext<
 export const AppProvider: React.FC<{
   children: ReactNode;
 }> = ({ children }) => {
+
   // ==========================================
   // LANGUAGE
   // ==========================================
@@ -135,16 +135,6 @@ export const AppProvider: React.FC<{
   // ==========================================
   // CURRENT USER
   // ==========================================
-  //
-  // IMPORTANT:
-  // Start with null.
-  //
-  // This means the user is NOT automatically
-  // considered logged in.
-  //
-  // The authenticated user will be restored
-  // through authApi.me().
-  // ==========================================
 
   const [currentUser, setCurrentUser] =
     useState<User | null>(null);
@@ -152,31 +142,32 @@ export const AppProvider: React.FC<{
   // ==========================================
   // PETS
   // ==========================================
+  //
+  // IMPORTANT:
+  //
+  // Pets are stored separately for every user.
+  //
+  // Example:
+  //
+  // furcare_pets_USER_101
+  // furcare_pets_USER_202
+  //
+  // A new user gets [].
+  //
+  // There are NO demo pets here.
+  // ==========================================
 
-  const [pets, setPets] = useState<Pet[]>(() => {
-    try {
-      const saved =
-        localStorage.getItem("furcare_pets");
-
-      return saved
-        ? JSON.parse(saved)
-        : initialPets;
-    } catch (error) {
-      console.error(
-        "Failed to load pets from localStorage:",
-        error
-      );
-
-      return initialPets;
-    }
-  });
+  const [pets, setPets] = useState<Pet[]>([]);
 
   // ==========================================
   // ACTIVE PET
   // ==========================================
+  //
+  // New users have no active pet.
+  // ==========================================
 
   const [activePetId, setActivePetId] =
-    useState<string>("PET-101");
+    useState<string>("");
 
   // ==========================================
   // CART
@@ -201,45 +192,15 @@ export const AppProvider: React.FC<{
   // ==========================================
   // APPOINTMENTS
   // ==========================================
+  //
+  // IMPORTANT:
+  //
+  // No default/demo appointment.
+  // Each user gets their own appointment list.
+  // ==========================================
 
   const [appointments, setAppointments] =
-    useState<Appointment[]>(() => {
-      try {
-        const saved =
-          localStorage.getItem("furcare_appts");
-
-        if (saved) {
-          return JSON.parse(saved);
-        }
-
-        return [
-          {
-            id: "APT-881",
-            pet_id: "PET-101",
-            petName: "Rocky",
-            vet_id: "VET-1",
-            vetName: "Dr. Ahmed Hossain",
-            clinicName:
-              "Central Pet Hospital & Research Center",
-            area: "Dhanmondi, Dhaka",
-            date: "2026-08-03",
-            time: "16:00",
-            status: "scheduled",
-            symptomProblem:
-              "Skin allergy scratching and routine vaccine check",
-            feeTk: 800,
-            consultationType: "in_person",
-          },
-        ];
-      } catch (error) {
-        console.error(
-          "Failed to load appointments from localStorage:",
-          error
-        );
-
-        return [];
-      }
-    });
+    useState<Appointment[]>([]);
 
   // ==========================================
   // ADOPTION LISTINGS
@@ -274,16 +235,6 @@ export const AppProvider: React.FC<{
 
   // ==========================================
   // RESTORE AUTHENTICATED SESSION
-  // ==========================================
-  //
-  // When the application starts:
-  //
-  // 1. Ask the backend if a valid session exists.
-  // 2. If there is a user, restore it.
-  // 3. If there is no valid session, keep
-  //    currentUser as null.
-  //
-  // This prevents fake automatic login.
   // ==========================================
 
   useEffect(() => {
@@ -323,13 +274,141 @@ export const AppProvider: React.FC<{
   }, []);
 
   // ==========================================
-  // SAVE PETS
+  // LOAD USER-SPECIFIC DATA
+  // ==========================================
+  //
+  // This runs whenever the logged-in user changes.
+  //
+  // VERY IMPORTANT:
+  //
+  // User A:
+  // furcare_pets_A
+  //
+  // User B:
+  // furcare_pets_B
+  //
+  // They never share pet data.
   // ==========================================
 
   useEffect(() => {
+    if (!currentUser?.id) {
+      // No logged-in user.
+      setPets([]);
+      setAppointments([]);
+      setActivePetId("");
+
+      return;
+    }
+
+    const userId = String(currentUser.id);
+
+    const petsKey =
+      `furcare_pets_${userId}`;
+
+    const appointmentsKey =
+      `furcare_appts_${userId}`;
+
+    const activePetKey =
+      `furcare_active_pet_${userId}`;
+
+    // ========================================
+    // LOAD PETS
+    // ========================================
+
+    try {
+      const savedPets =
+        localStorage.getItem(petsKey);
+
+      if (savedPets) {
+        const parsedPets =
+          JSON.parse(savedPets);
+
+        if (Array.isArray(parsedPets)) {
+          setPets(parsedPets);
+
+          // Restore active pet only if it
+          // actually belongs to this user.
+
+          const savedActivePet =
+            localStorage.getItem(activePetKey);
+
+          const activePetExists =
+            savedActivePet &&
+            parsedPets.some(
+              (pet: Pet) =>
+                pet.id === savedActivePet
+            );
+
+          if (activePetExists) {
+            setActivePetId(savedActivePet);
+          } else if (parsedPets.length > 0) {
+            setActivePetId(parsedPets[0].id);
+          } else {
+            setActivePetId("");
+          }
+        } else {
+          setPets([]);
+          setActivePetId("");
+        }
+      } else {
+        // Brand-new user.
+        setPets([]);
+        setActivePetId("");
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load user pets:",
+        error
+      );
+
+      setPets([]);
+      setActivePetId("");
+    }
+
+    // ========================================
+    // LOAD APPOINTMENTS
+    // ========================================
+
+    try {
+      const savedAppointments =
+        localStorage.getItem(appointmentsKey);
+
+      if (savedAppointments) {
+        const parsedAppointments =
+          JSON.parse(savedAppointments);
+
+        if (Array.isArray(parsedAppointments)) {
+          setAppointments(parsedAppointments);
+        } else {
+          setAppointments([]);
+        }
+      } else {
+        // Brand-new user.
+        setAppointments([]);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load user appointments:",
+        error
+      );
+
+      setAppointments([]);
+    }
+
+  }, [currentUser?.id]);
+
+  // ==========================================
+  // SAVE USER-SPECIFIC PETS
+  // ==========================================
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      return;
+    }
+
     try {
       localStorage.setItem(
-        "furcare_pets",
+        `furcare_pets_${currentUser.id}`,
         JSON.stringify(pets)
       );
     } catch (error) {
@@ -338,7 +417,39 @@ export const AppProvider: React.FC<{
         error
       );
     }
-  }, [pets]);
+  }, [pets, currentUser?.id]);
+
+  // ==========================================
+  // SAVE ACTIVE PET
+  // ==========================================
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      return;
+    }
+
+    try {
+      const key =
+        `furcare_active_pet_${currentUser.id}`;
+
+      if (activePetId) {
+        localStorage.setItem(
+          key,
+          activePetId
+        );
+      } else {
+        localStorage.removeItem(key);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to save active pet:",
+        error
+      );
+    }
+  }, [
+    activePetId,
+    currentUser?.id,
+  ]);
 
   // ==========================================
   // SAVE CART
@@ -359,13 +470,17 @@ export const AppProvider: React.FC<{
   }, [cart]);
 
   // ==========================================
-  // SAVE APPOINTMENTS
+  // SAVE USER-SPECIFIC APPOINTMENTS
   // ==========================================
 
   useEffect(() => {
+    if (!currentUser?.id) {
+      return;
+    }
+
     try {
       localStorage.setItem(
-        "furcare_appts",
+        `furcare_appts_${currentUser.id}`,
         JSON.stringify(appointments)
       );
     } catch (error) {
@@ -374,7 +489,10 @@ export const AppProvider: React.FC<{
         error
       );
     }
-  }, [appointments]);
+  }, [
+    appointments,
+    currentUser?.id,
+  ]);
 
   // ==========================================
   // TOAST SYSTEM
@@ -426,21 +544,42 @@ export const AppProvider: React.FC<{
   const addPet = (
     petData: Omit<Pet, "id">
   ) => {
+
+    // Don't allow pets without
+    // an authenticated owner.
+
+    if (!currentUser?.id) {
+      addToast(
+        "Please log in before registering a pet.",
+        "warning"
+      );
+
+      return;
+    }
+
     const newId =
       "PET-" +
-      Math.floor(
-        100 + Math.random() * 900
-      );
+      Date.now()
+        .toString(36)
+        .toUpperCase();
 
     const newPet: Pet = {
       ...petData,
+
       id: newId,
+
+      // Always use the authenticated
+      // user's ID as the owner.
+      owner_id: currentUser.id,
     };
 
     setPets((prev) => [
       ...prev,
       newPet,
     ]);
+
+    // Automatically select the
+    // newly registered pet.
 
     setActivePetId(newId);
 
@@ -460,7 +599,9 @@ export const AppProvider: React.FC<{
     type: CartItem["type"] = "product",
     customData?: Record<string, any>
   ) => {
+
     setCart((prev) => {
+
       const existingIndex =
         prev.findIndex(
           (item) =>
@@ -473,6 +614,7 @@ export const AppProvider: React.FC<{
 
         updated[existingIndex] = {
           ...updated[existingIndex],
+
           quantity:
             updated[existingIndex].quantity +
             quantity,
@@ -508,6 +650,7 @@ export const AppProvider: React.FC<{
     productId: string,
     quantity: number
   ) => {
+
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
@@ -533,6 +676,7 @@ export const AppProvider: React.FC<{
   const removeFromCart = (
     productId: string
   ) => {
+
     setCart((prev) =>
       prev.filter(
         (item) =>
@@ -564,11 +708,21 @@ export const AppProvider: React.FC<{
   const addAppointment = (
     apptData: Omit<Appointment, "id">
   ) => {
+
+    if (!currentUser?.id) {
+      addToast(
+        "Please log in before booking an appointment.",
+        "warning"
+      );
+
+      return;
+    }
+
     const newId =
       "APT-" +
-      Math.floor(
-        100 + Math.random() * 900
-      );
+      Date.now()
+        .toString(36)
+        .toUpperCase();
 
     const newAppt: Appointment = {
       ...apptData,
@@ -595,6 +749,7 @@ export const AppProvider: React.FC<{
   const cancelAppointment = (
     id: string
   ) => {
+
     setAppointments((prev) =>
       prev.filter(
         (appointment) =>
@@ -628,10 +783,21 @@ export const AppProvider: React.FC<{
   // ==========================================
 
   const triggerUpcomingReminders = () => {
+
+    // Don't show the old hard-coded
+    // Rocky reminder.
+
+    if (appointments.length === 0) {
+      return;
+    }
+
+    const upcomingAppointment =
+      appointments[0];
+
     addToast(
       language === "bn"
-        ? "⏰ রিমাইন্ডার: আজ বিকেল ৪:০০ টায় রকির জন্য ডঃ আহমেদ হোসেনের সাথে অ্যাপয়েন্টমেন্ট আছে (১ ঘন্টা বাকি)!"
-        : "⏰ Reminder: You have an appointment for Rocky with Dr. Ahmed Hossain at 4:00 PM today (1 hour remaining)!",
+        ? `⏰ রিমাইন্ডার: ${upcomingAppointment.petName} এর জন্য ${upcomingAppointment.vetName} এর সাথে অ্যাপয়েন্টমেন্ট আছে।`
+        : `⏰ Reminder: ${upcomingAppointment.petName} has an appointment with ${upcomingAppointment.vetName}.`,
       "reminder"
     );
   };
@@ -641,6 +807,17 @@ export const AppProvider: React.FC<{
   // ==========================================
 
   useEffect(() => {
+
+    // Don't automatically show a reminder
+    // for a fake/demo appointment.
+
+    if (
+      !currentUser?.id ||
+      appointments.length === 0
+    ) {
+      return;
+    }
+
     const timer = setTimeout(() => {
       triggerUpcomingReminders();
     }, 2000);
@@ -648,7 +825,12 @@ export const AppProvider: React.FC<{
     return () => {
       clearTimeout(timer);
     };
-  }, [language]);
+
+  }, [
+    language,
+    currentUser?.id,
+    appointments.length,
+  ]);
 
   // ==========================================
   // CONTEXT PROVIDER
@@ -705,6 +887,7 @@ export const AppProvider: React.FC<{
 // ============================================
 
 export const useApp = () => {
+
   const context =
     useContext(AppContext);
 
@@ -715,4 +898,4 @@ export const useApp = () => {
   }
 
   return context;
-}; 
+};
