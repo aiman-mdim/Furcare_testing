@@ -64,6 +64,9 @@ interface AppContextType {
 
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
+  requireAuth: () => boolean;
+  pendingPage: PageName | null;
+  setPendingPage: (page: PageName | null) => void;
 
   pets: Pet[];
   activePetId: string;
@@ -76,7 +79,7 @@ interface AppContextType {
     quantity?: number,
     type?: CartItem["type"],
     customData?: Record<string, any>
-  ) => void;
+  ) => boolean;
   updateCartQty: (productId: string, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   clearCart: () => void;
@@ -129,8 +132,11 @@ export const AppProvider: React.FC<{
   // ACTIVE PAGE
   // ==========================================
 
-  const [activePage, setActivePage] =
+  const [activePage, setActivePageState] =
     useState<PageName>("home");
+
+  const [pendingPage, setPendingPage] =
+    useState<PageName | null>(null);
 
   // ==========================================
   // CURRENT USER
@@ -537,6 +543,30 @@ export const AppProvider: React.FC<{
     );
   };
 
+  const setActivePage = (page: PageName) => {
+    if (
+      !currentUser?.id &&
+      (page === "cart" || page === "dashboard")
+    ) {
+      setPendingPage(page);
+      addToast("Please log in to continue.", "warning");
+      setActivePageState("login");
+      return;
+    }
+
+    setActivePageState(page);
+  };
+
+  const requireAuth = () => {
+    if (currentUser?.id) {
+      return true;
+    }
+
+    addToast("Please log in to continue.", "warning");
+    setActivePageState("login");
+    return false;
+  };
+
   // ==========================================
   // ADD PET
   // ==========================================
@@ -548,12 +578,7 @@ export const AppProvider: React.FC<{
     // Don't allow pets without
     // an authenticated owner.
 
-    if (!currentUser?.id) {
-      addToast(
-        "Please log in before registering a pet.",
-        "warning"
-      );
-
+    if (!requireAuth()) {
       return;
     }
 
@@ -587,6 +612,7 @@ export const AppProvider: React.FC<{
       `Registered new pet: ${newPet.name}!`,
       "success"
     );
+
   };
 
   // ==========================================
@@ -599,6 +625,10 @@ export const AppProvider: React.FC<{
     type: CartItem["type"] = "product",
     customData?: Record<string, any>
   ) => {
+
+    if (!requireAuth()) {
+      return false;
+    }
 
     setCart((prev) => {
 
@@ -640,6 +670,8 @@ export const AppProvider: React.FC<{
         : `"${product.nameEn}" added to cart!`,
       "success"
     );
+
+    return true;
   };
 
   // ==========================================
@@ -650,6 +682,10 @@ export const AppProvider: React.FC<{
     productId: string,
     quantity: number
   ) => {
+
+    if (!requireAuth()) {
+      return;
+    }
 
     if (quantity <= 0) {
       removeFromCart(productId);
@@ -677,6 +713,10 @@ export const AppProvider: React.FC<{
     productId: string
   ) => {
 
+    if (!requireAuth()) {
+      return;
+    }
+
     setCart((prev) =>
       prev.filter(
         (item) =>
@@ -698,6 +738,10 @@ export const AppProvider: React.FC<{
   // ==========================================
 
   const clearCart = () => {
+    if (!requireAuth()) {
+      return;
+    }
+
     setCart([]);
   };
 
@@ -709,12 +753,7 @@ export const AppProvider: React.FC<{
     apptData: Omit<Appointment, "id">
   ) => {
 
-    if (!currentUser?.id) {
-      addToast(
-        "Please log in before booking an appointment.",
-        "warning"
-      );
-
+    if (!requireAuth()) {
       return;
     }
 
@@ -847,6 +886,9 @@ export const AppProvider: React.FC<{
 
         currentUser,
         setCurrentUser,
+        requireAuth,
+        pendingPage,
+        setPendingPage,
 
         pets,
         activePetId,
