@@ -15,7 +15,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-// Default images according to species
+// Default images according to species 
 const PET_IMAGES: Record<PetSpecies, string> = {
   cat: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80",
   dog: "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=800&q=80",
