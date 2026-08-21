@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { mockVets } from "../data/mockData";
+import { useApp } from "../context/AppContext";
 
 export const VetAppointmentPage: React.FC = () => {
+  const { addAppointment, requireAuth } = useApp();
   const [selectedSlots, setSelectedSlots] = useState<{ [key: string]: string }>({});
 
   const handleSlotSelect = (vetId: string, slot: string) => {
@@ -9,6 +11,24 @@ export const VetAppointmentPage: React.FC = () => {
       ...prev,
       [vetId]: slot,
     }));
+  };
+
+  const handleBookAppointment = (vet: (typeof mockVets)[number], selectedSlot: string) => {
+    if (!requireAuth()) return;
+
+    addAppointment({
+      pet_id: "PENDING-PET",
+      petName: "My pet",
+      vet_id: vet.id,
+      vetName: vet.name,
+      clinicName: vet.clinicName,
+      area: vet.area,
+      date: new Date().toISOString().split("T")[0],
+      time: selectedSlot,
+      status: "scheduled",
+      feeTk: vet.feeTk,
+      consultationType: "in_person",
+    });
   };
 
   return (
@@ -96,6 +116,7 @@ export const VetAppointmentPage: React.FC = () => {
                     : "bg-slate-100 text-slate-400 cursor-not-allowed"
                 }`}
                 disabled={!selectedSlot}
+                onClick={() => selectedSlot && handleBookAppointment(vet, selectedSlot)}
               >
                 {selectedSlot ? `Book Appointment (৳${vet.feeTk})` : "Select a Time Slot"}
               </button>

@@ -33,7 +33,7 @@ export const PremiumFeaturesPage: React.FC = () => {
       stock: 999,
     };
 
-    addToCart(premiumProduct, 1, "premium_plan");
+    if (!addToCart(premiumProduct, 1, "premium_plan")) return;
     setActivePage("cart");
   };
 

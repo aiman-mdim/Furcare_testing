@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 export const CartCheckoutPage: React.FC = () => {
-  const { language, cart, removeFromCart, clearCart, addToast, setActivePage } = useApp();
+  const { language, cart, removeFromCart, clearCart, addToast, setActivePage, requireAuth } = useApp();
 
   // Form State
   const [customerEmail, setCustomerEmail] = useState("");
@@ -26,6 +26,7 @@ export const CartCheckoutPage: React.FC = () => {
 
   const handleReviewPayment = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuth()) return;
     if (cart.length === 0) return;
 
     setIsProcessing(true);

@@ -9,6 +9,8 @@ export const LoginSignupPage: React.FC = () => {
     setCurrentUser,
     setActivePage,
     addToast,
+    pendingPage,
+    setPendingPage,
   } = useApp();
 
   // ============================================
@@ -120,7 +122,9 @@ export const LoginSignupPage: React.FC = () => {
       // GO TO DASHBOARD
       // ========================================
 
-      setActivePage("dashboard");
+      const destination = pendingPage || "dashboard";
+      setPendingPage(null);
+      setActivePage(destination);
     } catch (err: any) {
       console.error(
         "Authentication error:",

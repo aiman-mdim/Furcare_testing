@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import { connectDatabase } from "./server/db";
 import authRoutes from "./server/routes/auth";
+import petRoutes from "./server/routes/pets";
 
 import express from "express";
 import path from "path";
@@ -18,7 +19,11 @@ app.use(cookieParser());
 app.use(express.json({ limit: "10mb" }));
 
 // Authentication routes
+// Authentication routes
 app.use("/api/auth", authRoutes);
+
+// Pet routes
+app.use("/api/pets", petRoutes);
 
 // ============================================
 // GEMINI AI CLIENT

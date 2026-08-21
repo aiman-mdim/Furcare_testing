@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export const PetAdoptionPage: React.FC = () => {
-  const { language, adoptionListings, addToast, setActivePage } = useApp();
+  const { language, adoptionListings, addToast, setActivePage, requireAuth } = useApp();
 
   // Survey preference state
   const [selectedSpecies, setSelectedSpecies] = useState<PetSpecies | "all">("all");
@@ -112,6 +112,8 @@ export const PetAdoptionPage: React.FC = () => {
   };
 
   const handleConfirmAdoption = () => {
+    if (!requireAuth()) return;
+
     setAdoptionSubmitted(true);
     setTimeout(() => {
       setAdoptionSubmitted(false);
