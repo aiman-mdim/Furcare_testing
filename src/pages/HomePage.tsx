@@ -497,7 +497,6 @@ openFAQ===index?"rotate-180":""
           </button>
         </div>
       </section>
-
     </div>
   );
 };
