@@ -31,6 +31,7 @@ export const Header: React.FC = () => {
     cart,
     setIsAiModalOpen,
     addToast,
+    requireAuth,
   } = useApp();
 
   // ============================================
@@ -201,7 +202,9 @@ export const Header: React.FC = () => {
   // ============================================
 
   const handleDashboard = () => {
-    setActivePage("dashboard");
+    if (requireAuth()) {
+      setActivePage("dashboard");
+    }
     setIsUserMenuOpen(false);
   };
 
