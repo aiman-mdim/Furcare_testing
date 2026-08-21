@@ -1,62 +1,39 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { getTranslation } from "../translations/i18n";
-import { mockPetHotels } from "../data/mockData";
-import { PetHotel, Product } from "../types";
+import { mockProducts } from "../data/mockData";
+import { Product } from "../types";
 import {
-  Hotel,
+  Store,
   Search,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Trash2,
   Star,
-  MapPin,
-  CheckCircle2,
-  Calendar,
-  ShieldCheck,
-  CreditCard,
-  Wifi,
-  Tv,
+  Check,
+  Filter,
 } from "lucide-react";
 
-export const PetHotelPage: React.FC = () => {
-  const { language, addToCart, setActivePage } = useApp();
+export const PetStorePage: React.FC = () => {
+  const { language, cart, addToCart, updateCartQty, removeFromCart, setActivePage } = useApp();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCity, setSelectedCity] = useState("all");
-  const [selectedRoomType, setSelectedRoomType] = useState("all");
-  const [bookingDays, setBookingDays] = useState(2);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedSpecies, setSelectedSpecies] = useState<string>("all");
 
-  const filteredHotels = mockPetHotels.filter((hotel) => {
+  const filteredProducts = mockProducts.filter((product) => {
     const matchesSearch =
-      hotel.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      hotel.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCity = selectedCity === "all" || hotel.city === selectedCity;
-    const matchesRoom = selectedRoomType === "all" || hotel.roomType === selectedRoomType;
-    return matchesSearch && matchesCity && matchesRoom;
+      product.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.nameBn.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+    const matchesSpecies = selectedSpecies === "all" || product.targetSpecies === "all" || product.targetSpecies === selectedSpecies;
+    return matchesSearch && matchesCategory && matchesSpecies;
   });
 
-  const handleBookHotel = (hotel: PetHotel) => {
-    const totalCost = hotel.dailyRateTk * bookingDays;
-
-    const productRepresentation: Product = {
-      product_id: hotel.id,
-      nameEn: `${hotel.name} (${hotel.roomType} - ${bookingDays} Days Boarding)`,
-      nameBn: `${hotel.name} (${hotel.roomType} - ${bookingDays} দিনের বোর্ডিং)`,
-      category: "accessories",
-      targetSpecies: "all",
-      priceTk: totalCost,
-      rating: hotel.rating,
-      reviewsCount: hotel.reviewsCount,
-      image: hotel.image,
-      descriptionEn: `Boarding room stay at ${hotel.location}, ${hotel.city}. Features 24/7 monitoring and organic meals.`,
-      descriptionBn: `${hotel.location}, ${hotel.city}-এ পেটের সুবিধাজনক এসি রুম থাকার ব্যবস্থা।`,
-      stock: hotel.availableRooms,
-    };
-
-    addToCart(productRepresentation, 1, "hotel_booking", {
-      days: bookingDays,
-      dailyRate: hotel.dailyRateTk,
-    });
-
-    setActivePage("cart");
+  const getCartQuantity = (productId: string) => {
+    const item = cart.find((i) => i.product.product_id === productId);
+    return item ? item.quantity : 0;
   };
 
   return (
@@ -64,150 +41,169 @@ export const PetHotelPage: React.FC = () => {
       
       {/* Title */}
       <div className="max-w-4xl mx-auto text-center space-y-2">
-        <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-extrabold uppercase rounded-full">
-          Luxury Boarding & Suites
+        <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-extrabold uppercase rounded-full">
+          Pet Supermarket BD
         </span>
         <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-display">
-          {getTranslation(language, "hotelTitle")}
+          {getTranslation(language, "storeTitle")}
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
-          {getTranslation(language, "hotelSub")}
+          {language === "bn"
+            ? "রয়েল ক্যানিন, রিফ্লেক্স, অক্সবো ও অন্যান্য বিশ্বমানের পেট ব্র্যান্ডের খাবার ও অ্যাক্সেসরিজ অনলাইনে অর্ডার করুন।"
+            : "Order authentic pet food, toys, grooming tools, and accessories. Fast home delivery across Bangladesh."}
         </p>
       </div>
 
-      {/* Hotel Search & Filter System */}
-      <div className="max-w-5xl mx-auto bg-[#14532D] p-4 rounded-3xl shadow-[0_12px_35px_rgba(20,83,45,0.22)] border border-emerald-800/40 space-y-4" id="hotel-filter-system">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+      {/* Supermarket Search & Filter Header Bar */}
+      <div className="max-w-6xl mx-auto bg-white p-4 rounded-3xl shadow-md border border-slate-200 space-y-4" id="store-supermarket-bar">
+        <div className="flex flex-col sm:flex-row items-center gap-3">
           
-          {/* Search Location */}
-          <div className="space-y-1">
-            <label className="font-bold text-white block">Search Location / Hotel</label>
-            <div className="bg-emerald-50/95 border border-emerald-200 rounded-xl px-3 py-2 flex items-center gap-2 shadow-sm">
-              <Search className="w-4 h-4 text-emerald-700" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="e.g. Gulshan, Uttara, Khulshi..."
-                className="w-full bg-transparent text-slate-800 placeholder:text-slate-400 focus:outline-none"
-              />
-            </div>
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5 flex items-center gap-2 w-full">
+            <Search className="w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search food, salmon, harness, toys, hay..."
+              className="w-full text-xs text-slate-800 bg-transparent focus:outline-none"
+            />
           </div>
 
-          {/* City */}
-          <div className="space-y-1">
-            <label className="font-bold text-white block">City</label>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <select
-              value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-medium text-slate-800 focus:outline-none shadow-sm"
+              value={selectedSpecies}
+              onChange={(e) => setSelectedSpecies(e.target.value)}
+              className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-700"
             >
-              <option value="all">All Cities</option>
-              <option value="Dhaka">Dhaka</option>
-              <option value="Chattogram">Chattogram</option>
-              <option value="Sylhet">Sylhet</option>
+              <option value="all">All Species</option>
+              <option value="dog">Dogs (কুকুর)</option>
+              <option value="cat">Cats (বিড়াল)</option>
+              <option value="rabbit">Rabbits (খরগোশ)</option>
             </select>
-          </div>
 
-          {/* Room Type */}
-          <div className="space-y-1">
-            <label className="font-bold text-white block">Room Category</label>
-            <select
-              value={selectedRoomType}
-              onChange={(e) => setSelectedRoomType(e.target.value)}
-              className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-medium text-slate-800 focus:outline-none shadow-sm"
+            <button
+              onClick={() => setActivePage("cart")}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-1.5 shrink-0"
             >
-              <option value="all">All Rooms</option>
-              <option value="Standard Room">Standard Room</option>
-              <option value="AC Luxury Room">AC Luxury Room</option>
-              <option value="VIP Suite">VIP Suite</option>
-            </select>
-          </div>
-
-          {/* Duration Days */}
-          <div className="space-y-1">
-            <label className="font-bold text-white block">Stay Duration (Days)</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min="1"
-                max="30"
-                value={bookingDays}
-                onChange={(e) => setBookingDays(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full px-3 py-2 bg-emerald-50/95 border border-emerald-200 rounded-xl font-bold text-center text-slate-800 shadow-sm"
-              />
-              <span className="font-bold text-emerald-100">Days</span>
-            </div>
+              <ShoppingCart className="w-4 h-4" />
+              <span>Cart ({cart.reduce((a, b) => a + b.quantity, 0)})</span>
+            </button>
           </div>
 
         </div>
+
+        {/* Category Selector Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-t border-slate-100 pt-3">
+          {[
+            { id: "all", key: "allProducts" },
+            { id: "food", key: "foodCategory" },
+            { id: "accessories", key: "accessoriesCategory" },
+            { id: "toys", key: "toysCategory" },
+            { id: "grooming", key: "groomingCategory" },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                selectedCategory === cat.id
+                  ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                  : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              {getTranslation(language, cat.key as any)}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Hotel Cards List */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-        {filteredHotels.map((hotel) => (
-          <div
-            key={hotel.id}
-            className="bg-white rounded-3xl shadow-md border border-slate-200 hover:shadow-xl transition-all overflow-hidden h-full flex flex-col justify-between"
-          >
-            <div className="relative h-44">
-              <img
-                src={hotel.image}
-                alt={hotel.name}
-                className="w-full h-full object-cover"
-              />
-              <span className="absolute top-3 left-3 px-2.5 py-1 bg-slate-900/80 text-white backdrop-blur-md rounded-lg text-[10px] font-bold">
-                {hotel.roomType}
-              </span>
-            </div>
+      {/* Product Supermarket Grid */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProducts.map((product) => {
+          const qtyInCart = getCartQuantity(product.product_id);
 
-            <div className="p-5 flex flex-col flex-1 space-y-3">
-              <div>
-                <h3 className="text-lg font-black text-slate-900 font-display">{hotel.name}</h3>
-                <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-1">
-                  <MapPin className="w-3.5 h-3.5 text-rose-500" />
-                  <span>{hotel.location}, {hotel.city}</span>
-                </p>
-              </div>
+          return (
+            <div
+              key={product.product_id}
+              className="bg-white rounded-3xl p-5 shadow-md border border-slate-200 hover:shadow-xl transition-all flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-3">
+                
+                {/* Image & Price Tag */}
+                <div className="relative rounded-2xl overflow-hidden h-48 bg-slate-100">
+                  <img
+                    src={product.image}
+                    alt={product.nameEn}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                  {product.originalPriceTk && (
+                    <span className="absolute top-3 left-3 px-2 py-0.5 bg-rose-500 text-white text-[10px] font-extrabold rounded-md shadow-xs">
+                      SAVE ৳{product.originalPriceTk - product.priceTk}
+                    </span>
+                  )}
+                  <span className="absolute bottom-3 right-3 px-2.5 py-1 bg-slate-900/80 text-white backdrop-blur-md rounded-lg text-xs font-black">
+                    ৳{product.priceTk}
+                  </span>
+                </div>
 
-              <div className="flex items-center gap-1 text-xs font-bold text-[#14532D]">
-                <Star className="w-4 h-4 fill-current" />
-                <span>{hotel.rating} Rating ({hotel.reviewsCount} reviews)</span>
-              </div>
+                {/* Rating & Stock */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1 font-bold text-amber-500">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span>{product.rating} ({product.reviewsCount})</span>
+                  </span>
+                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-[10px]">
+                    {getTranslation(language, "inStock")} ({product.stock})
+                  </span>
+                </div>
 
-              <div className="text-[11px] text-slate-500">
-                {hotel.availableRooms} rooms available
-              </div>
-
-              <ul className="space-y-1 text-xs text-slate-600">
-                {(language === "bn" ? hotel.featuresBn : hotel.featuresEn).slice(0, 3).map((f, i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="border-t border-slate-100 pt-3 mt-auto space-y-3">
+                {/* Product Name & Description */}
                 <div>
-                  <p className="text-xs text-slate-400 uppercase font-bold">Daily Rate</p>
-                  <p className="text-xl font-black text-slate-900 font-display">৳{hotel.dailyRateTk}</p>
-                  <p className="text-[11px] text-emerald-600 font-bold">
-                    Total for {bookingDays} Days: ৳{hotel.dailyRateTk * bookingDays}
+                  <h3 className="font-bold text-slate-900 text-sm font-display leading-snug line-clamp-2">
+                    {language === "bn" ? product.nameBn : product.nameEn}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                    {language === "bn" ? product.descriptionBn : product.descriptionEn}
                   </p>
                 </div>
 
-                <button
-                  onClick={() => handleBookHotel(hotel)}
-                  className="w-full py-3 bg-[#14532D] hover:bg-[#0f4224] text-white font-black text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                >
-                  <CreditCard className="w-4 h-4" />
-                  <span>{getTranslation(language, "bookHotelRoom")}</span>
-                </button>
               </div>
+
+              {/* Quantity Increase / Decrease / Add to Cart Controls */}
+              <div className="pt-2 border-t border-slate-100">
+                {qtyInCart > 0 ? (
+                  <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button
+                      onClick={() => updateCartQty(product.product_id, qtyInCart - 1)}
+                      className="w-8 h-8 rounded-xl bg-white text-slate-800 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center font-bold shadow-xs"
+                    >
+                      {qtyInCart === 1 ? <Trash2 className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
+                    </button>
+
+                    <span className="font-black text-slate-900 text-xs">
+                      {qtyInCart} in Cart
+                    </span>
+
+                    <button
+                      onClick={() => updateCartQty(product.product_id, qtyInCart + 1)}
+                      className="w-8 h-8 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 flex items-center justify-center font-bold shadow-xs"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => addToCart(product, 1)}
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>{getTranslation(language, "addToCartBtn")}</span>
+                  </button>
+                )}
+              </div>
+
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
     </div>
