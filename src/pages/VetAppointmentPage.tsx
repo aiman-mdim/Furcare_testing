@@ -88,7 +88,6 @@ export const VetAppointmentPage: React.FC = () => {
                   })}
                 </div>
               </div>
-
               {/* Action Button */}
               <button 
                 className={`w-full py-3 font-bold rounded-2xl transition-all active:scale-[0.98] ${
