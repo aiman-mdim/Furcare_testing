@@ -202,7 +202,6 @@ export const UserDashboardPage: React.FC = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
