@@ -940,8 +940,3 @@ export const useApp = () => {
   }
 
   return context;
-<<<<<<< HEAD
-};
-=======
-};
->>>>>>> 4d7a7b28171e369a677de36b96cc9b5e35d8bdd6
