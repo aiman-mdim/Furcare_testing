@@ -51,10 +51,10 @@ export const PetHotelPage: React.FC = () => {
       stock: hotel.availableRooms,
     };
 
-    addToCart(productRepresentation, 1, "hotel_booking", {
+    if (!addToCart(productRepresentation, 1, "hotel_booking", {
       days: bookingDays,
       dailyRate: hotel.dailyRateTk,
-    });
+    })) return;
 
     setActivePage("cart");
   };
