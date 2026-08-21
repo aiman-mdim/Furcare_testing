@@ -206,6 +206,6 @@ export const PetStorePage: React.FC = () => {
         })}
       </div>
 
-    </div>
+  </div>
   );
 };
