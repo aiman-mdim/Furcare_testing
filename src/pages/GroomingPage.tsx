@@ -48,7 +48,7 @@ export const GroomingPage: React.FC = () => {
       stock: 99,
     };
 
-    addToCart(productRepresentation, 1, "grooming_service", { groomingType });
+    if (!addToCart(productRepresentation, 1, "grooming_service", { groomingType })) return;
     setActivePage("cart");
   };
 
