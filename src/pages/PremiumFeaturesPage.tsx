@@ -160,7 +160,6 @@ export const PremiumFeaturesPage: React.FC = () => {
         </button>
         <p className="text-xs text-slate-400 font-medium">Cancel Anytime</p>
       </div>
-
     </div>
   );
 };
