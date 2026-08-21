@@ -333,7 +333,6 @@ export const translations = {
     langBn: "বাংলা",
   },
 };
-
 export function getTranslation(lang: Language, key: keyof typeof translations["en"]) {
   return translations[lang]?.[key] || translations["en"][key] || key;
 }
