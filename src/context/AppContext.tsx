@@ -929,9 +929,7 @@ export const AppProvider: React.FC<{
 // ============================================
 
 export const useApp = () => {
-
-  const context =
-    useContext(AppContext);
+  const context = useContext(AppContext);
 
   if (!context) {
     throw new Error(
@@ -940,3 +938,4 @@ export const useApp = () => {
   }
 
   return context;
+};
