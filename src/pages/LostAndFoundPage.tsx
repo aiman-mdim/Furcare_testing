@@ -25,7 +25,7 @@ const PET_IMAGES: Record<PetSpecies, string> = {
 };
 
 export const LostAndFoundPage: React.FC = () => {
-  const { language, addToast } = useApp();
+  const { language, addToast, requireAuth } = useApp();
 
   const [listings, setListings] = useState<LostAndFoundListing[]>(mockLostFound);
   const [reportType, setReportType] = useState<"lost" | "found">("lost");
@@ -55,6 +55,8 @@ export const LostAndFoundPage: React.FC = () => {
   const [matchedIds, setMatchedIds] = useState<string[]>([]);
 
   const handleRunAiMatch = async () => {
+    if (!requireAuth()) return;
+
     setIsAiMatching(true);
     setAiAnalysis("");
     setMatchedIds([]);
@@ -95,6 +97,7 @@ export const LostAndFoundPage: React.FC = () => {
 
   const handleCreateReport = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!requireAuth()) return;
 
     const selectedPhoto = photoUrl.trim() || PET_IMAGES[species] || PET_IMAGES.cat;
 
