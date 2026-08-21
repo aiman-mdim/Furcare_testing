@@ -174,7 +174,7 @@ export const GroomingPage: React.FC = () => {
           </div>
         ))}
       </div>
-
+      
     </div>
   );
 };
