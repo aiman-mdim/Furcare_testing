@@ -1,347 +1,31 @@
-import React, { useState } from "react";
+import React from "react";
 import { useApp } from "../context/AppContext";
-import { getTranslation } from "../translations/i18n";
+import { Product } from "../types";
 import {
-  AdoptionListing,
-  PetSpecies,
-  Product,
-} from "../types";
-
-import {
-  Heart,
-  X,
-  MapPin,
-  CheckCircle2,
-  SlidersHorizontal,
+  Compass,
+  Zap,
+  PhoneCall,
+  HeartHandshake,
+  Check,
+  ArrowRight,
 } from "lucide-react";
 
-export const PetAdoptionPage: React.FC = () => {
+export const PremiumFeaturesPage: React.FC = () => {
   const {
     language,
-    adoptionListings,
-    addToast,
-    setActivePage,
-    requireAuth,
     addToCart,
+    setActivePage,
+    addToast,
+    requireAuth,
   } = useApp();
 
   // ============================================
-  // SURVEY PREFERENCE STATE
+  // CONTINUE TO CART
   // ============================================
 
-  const [selectedSpecies, setSelectedSpecies] =
-    useState<PetSpecies | "all">("all");
-
-  const [selectedBreed, setSelectedBreed] =
-    useState<string>("all");
-
-  const [selectedColor, setSelectedColor] =
-    useState<string>("all");
-
-  const [selectedBehaviour, setSelectedBehaviour] =
-    useState<string>("all");
-
-  const [selectedAgeGroup, setSelectedAgeGroup] =
-    useState<string>("all");
-
-  // ============================================
-  // OPTIONS
-  // ============================================
-
-  const speciesOptions = [
-    {
-      value: "all",
-      label:
-        language === "bn"
-          ? "সব"
-          : "All",
-    },
-    {
-      value: "dog",
-      label: "Dog",
-    },
-    {
-      value: "cat",
-      label: "Cat",
-    },
-    {
-      value: "rabbit",
-      label: "Rabbit",
-    },
-    {
-      value: "bird",
-      label: "Bird",
-    },
-  ];
-
-  const behaviourOptions = [
-    {
-      value: "all",
-      label:
-        language === "bn"
-          ? "যেকোন"
-          : "Any",
-    },
-    {
-      value: "playful",
-      label: "Playful",
-    },
-    {
-      value: "calm",
-      label: "Calm",
-    },
-    {
-      value: "energetic",
-      label: "Energetic",
-    },
-    {
-      value: "gentle",
-      label: "Gentle",
-    },
-    {
-      value: "curious",
-      label: "Curious",
-    },
-    {
-      value: "friendly",
-      label: "Friendly",
-    },
-    {
-      value: "loyal",
-      label: "Loyal",
-    },
-    {
-      value: "shy",
-      label: "Shy",
-    },
-  ];
-
-  const colorOptions = [
-    {
-      value: "all",
-      label:
-        language === "bn"
-          ? "যেকোন"
-          : "Any",
-    },
-    {
-      value: "Golden",
-      label: "Golden",
-    },
-    {
-      value: "Black",
-      label: "Black",
-    },
-    {
-      value: "White",
-      label: "White",
-    },
-    {
-      value: "Brown",
-      label: "Brown",
-    },
-    {
-      value: "Tri-color",
-      label: "Tri-color",
-    },
-    {
-      value: "Orange Tabby",
-      label: "Orange Tabby",
-    },
-    {
-      value: "Black & Tan",
-      label: "Black & Tan",
-    },
-  ];
-
-  const ageOptions = [
-    {
-      value: "all",
-      label:
-        language === "bn"
-          ? "যেকোন বয়স"
-          : "Any",
-    },
-    {
-      value: "young-0-6",
-      label: "0–6 Months",
-    },
-    {
-      value: "young-6-12",
-      label: "6–12 Months",
-    },
-    {
-      value: "adult-1-2",
-      label: "1–2 Years",
-    },
-    {
-      value: "adult-2plus",
-      label: "2+ Years",
-    },
-  ];
-
-  // ============================================
-  // SWIPE CARD STATE
-  // ============================================
-
-  const [currentIndex, setCurrentIndex] =
-    useState<number>(0);
-
-  const [swipeDirection, setSwipeDirection] =
-    useState<
-      "left" | "right" | null
-    >(null);
-
-  const [
-    selectedPetForModal,
-    setSelectedPetForModal,
-  ] = useState<AdoptionListing | null>(
-    null
-  );
-
-  const [adoptionSubmitted, setAdoptionSubmitted] =
-    useState<boolean>(false);
-
-  // ============================================
-  // FILTER LISTINGS
-  // ============================================
-
-  const filteredListings =
-    adoptionListings.filter((pet) => {
-      if (
-        selectedSpecies !== "all" &&
-        pet.species !== selectedSpecies
-      ) {
-        return false;
-      }
-
-      if (
-        selectedBreed !== "all" &&
-        pet.breed !== selectedBreed
-      ) {
-        return false;
-      }
-
-      if (
-        selectedColor !== "all" &&
-        pet.color !== selectedColor
-      ) {
-        return false;
-      }
-
-      if (
-        selectedBehaviour !== "all" &&
-        pet.behaviour !== selectedBehaviour
-      ) {
-        return false;
-      }
-
-      if (
-        selectedAgeGroup === "young" &&
-        pet.ageMonths > 12
-      ) {
-        return false;
-      }
-
-      if (
-        selectedAgeGroup === "adult" &&
-        pet.ageMonths <= 12
-      ) {
-        return false;
-      }
-
-      if (
-        selectedAgeGroup === "young-0-6" &&
-        pet.ageMonths > 6
-      ) {
-        return false;
-      }
-
-      if (
-        selectedAgeGroup === "young-6-12" &&
-        (
-          pet.ageMonths <= 6 ||
-          pet.ageMonths > 12
-        )
-      ) {
-        return false;
-      }
-
-      if (
-        selectedAgeGroup === "adult-1-2" &&
-        (
-          pet.ageMonths <= 12 ||
-          pet.ageMonths > 24
-        )
-      ) {
-        return false;
-      }
-
-      if (
-        selectedAgeGroup === "adult-2plus" &&
-        pet.ageMonths <= 24
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-
-  // ============================================
-  // CURRENT PET
-  // ============================================
-
-  const currentPet =
-    filteredListings[currentIndex];
-
-  // ============================================
-  // SWIPE HANDLER
-  // ============================================
-
-  const handleSwipe = (
-    direction: "left" | "right"
-  ) => {
-    setSwipeDirection(direction);
-
-    if (
-      direction === "right" &&
-      currentPet
-    ) {
-      addToast(
-        language === "bn"
-          ? `❤️ "${currentPet.name}" দত্তকের জন্য পছন্দ হয়েছে (ID: ${currentPet.pet_id})`
-          : `❤️ Saved "${currentPet.name}" for adoption approval! (ID: ${currentPet.pet_id})`,
-        "success"
-      );
-
-      setSelectedPetForModal(
-        currentPet
-      );
-    }
-
-    setTimeout(() => {
-      setSwipeDirection(null);
-
-      if (
-        currentIndex <
-        filteredListings.length - 1
-      ) {
-        setCurrentIndex(
-          (prev) => prev + 1
-        );
-      } else {
-        setCurrentIndex(0);
-      }
-    }, 300);
-  };
-
-  // ============================================
-  // CONFIRM ADOPTION
-  // ============================================
-
-  const handleConfirmAdoption = () => {
+  const handleContinueToCart = () => {
     // ------------------------------------------
-    // REQUIRE LOGIN
+    // Authentication check
     // ------------------------------------------
 
     if (!requireAuth()) {
@@ -349,111 +33,63 @@ export const PetAdoptionPage: React.FC = () => {
     }
 
     // ------------------------------------------
-    // CHECK SELECTED PET
+    // Premium membership product
     // ------------------------------------------
 
-    if (!selectedPetForModal) {
-      addToast(
-        language === "bn"
-          ? "অনুগ্রহ করে প্রথমে একটি পেট নির্বাচন করুন।"
-          : "Please select a pet first.",
-        "warning"
-      );
-
-      return;
-    }
-
-    // ------------------------------------------
-    // SELECTED PET
-    // ------------------------------------------
-
-    const pet =
-      selectedPetForModal;
-
-    // ------------------------------------------
-    // CREATE ADOPTION PRODUCT
-    //
-    // Adoption is represented as a zero-price
-    // cart item.
-    //
-    // No payment is required for adoption.
-    // ------------------------------------------
-
-    const adoptionProduct: Product = {
-      product_id:
-        `ADOPTION-${pet.pet_id}`,
+    const premiumProduct: Product = {
+      product_id: "PRM-500",
 
       nameEn:
-        `Adoption Request - ${pet.name}`,
+        "FurCare VIP Extra Premium Membership (1 Month)",
 
       nameBn:
-        `দত্তক আবেদন - ${pet.name}`,
+        "FurCare ভিআইপি এক্সট্রা প্রিমিয়াম মেম্বারশিপ (১ মাস)",
 
-      category:
-        "healthcare",
+      category: "healthcare",
 
-      targetSpecies:
-        pet.species,
+      targetSpecies: "all",
 
-      priceTk: 0,
+      priceTk: 500,
 
       rating: 5,
 
-      reviewsCount: 0,
+      reviewsCount: 320,
 
       image:
-        pet.image,
+        "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=800&q=80",
 
       descriptionEn:
-        `Adoption request for ${pet.name}. No payment is required.`,
+        "Includes Pet Walking, 24/7 Emergency Ambulance, Genetic Breed Matching, and Full Pet-Friendly Places Map access.",
 
       descriptionBn:
-        `${pet.name}-কে দত্তক নেওয়ার আবেদন। কোনো টাকা প্রদান করতে হবে না।`,
+        "পেট ওয়াকিং, ২৪/৭ জরুরি অ্যাম্বুলেন্স, জিনেটিক ব্রিড ম্যাচিং এবং ইন্টারেক্টিভ ম্যাপ সুবিধা।",
 
-      stock: 1,
+      stock: 999,
     };
 
     // ------------------------------------------
-    // ADD ADOPTION REQUEST TO CART
+    // Add premium plan to cart
     // ------------------------------------------
 
-    const added =
-      addToCart(
-        adoptionProduct,
-        1,
-        "adoption",
-        {
-          petId:
-            pet.pet_id,
+    const added = addToCart(
+      premiumProduct,
+      1,
+      "premium_plan",
+      {
+        planId: "PRM-500",
 
-          petName:
-            pet.name,
+        planName: "VIP Extra Premium",
 
-          species:
-            pet.species,
+        duration: "1 month",
 
-          breed:
-            pet.breed,
+        priceTk: 500,
 
-          color:
-            pet.color,
-
-          location:
-            pet.location,
-
-          city:
-            pet.city,
-
-          vaccinated:
-            pet.vaccinated,
-
-          adoptionStatus:
-            "pending",
-        }
-      );
+        membershipStatus: "pending",
+      }
+    );
 
     // ------------------------------------------
-    // STOP IF CART ADD FAILED
+    // If cart operation failed
     // ------------------------------------------
 
     if (!added) {
@@ -461,682 +97,244 @@ export const PetAdoptionPage: React.FC = () => {
     }
 
     // ------------------------------------------
-    // SUCCESS
+    // Success notification
     // ------------------------------------------
-
-    setAdoptionSubmitted(true);
 
     addToast(
       language === "bn"
-        ? `${pet.name}-এর দত্তক আবেদন Cart-এ যোগ হয়েছে।`
-        : `${pet.name}'s adoption request was added to your cart.`,
+        ? "প্রিমিয়াম প্ল্যান Cart-এ যোগ হয়েছে।"
+        : "Premium membership added to cart. Complete payment to activate.",
       "success"
     );
 
     // ------------------------------------------
-    // CLOSE MODAL
+    // Go to cart
     // ------------------------------------------
 
-    setTimeout(() => {
-      setAdoptionSubmitted(false);
-
-      setSelectedPetForModal(
-        null
-      );
-
-      // ----------------------------------------
-      // GO TO CART
-      // ----------------------------------------
-
-      setActivePage("cart");
-    }, 800);
+    setActivePage("cart");
   };
 
   // ============================================
-  // RESET FILTERS
+  // PREMIUM SERVICES
   // ============================================
 
-  const resetFilters = () => {
-    setSelectedSpecies("all");
-    setSelectedBreed("all");
-    setSelectedColor("all");
-    setSelectedBehaviour("all");
-    setSelectedAgeGroup("all");
-    setCurrentIndex(0);
-  };
+  const services = [
+    {
+      id: "map",
+
+      title: "Pet-Friendly Spots Map",
+
+      description:
+        "Interactive map to discover parks, pet-friendly cafes, clinics, and grooming spots in Dhaka, Chattogram & Sylhet with turn-by-turn navigation.",
+
+      image:
+        "https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=800&q=80",
+
+      icon: (
+        <Compass className="w-5 h-5 text-[#dfba61]" />
+      ),
+
+      tag: "GPS Live Map",
+    },
+
+    {
+      id: "walking",
+
+      title: "Pet Walking Service",
+
+      description:
+        "Background-checked professional pet walkers for daily exercise, leash training, and outdoor happiness with real-time route updates.",
+
+      image:
+        "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=800&q=80",
+
+      icon: (
+        <Zap className="w-5 h-5 text-[#dfba61]" />
+      ),
+
+      tag: "On-Demand Walk",
+    },
+
+    {
+      id: "emergency",
+
+      title: "24/7 Emergency Vet",
+
+      description:
+        "Instant hotline access to senior veterinary surgeons in Bangladesh, plus oxygen-equipped ambulance dispatch for critical pet care.",
+
+      image:
+        "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=800&q=80",
+
+      icon: (
+        <PhoneCall className="w-5 h-5 text-[#dfba61]" />
+      ),
+
+      tag: "24/7 Ambulance",
+    },
+
+    {
+      id: "breed",
+
+      title: "Breed Matchmaker",
+
+      description:
+        "Connect with verified pedigree pet owners for breeding, health compatibility analysis, and genetic disease screening.",
+
+      image:
+        "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80",
+
+      icon: (
+        <HeartHandshake className="w-5 h-5 text-[#dfba61]" />
+      ),
+
+      tag: "Genetic Match",
+    },
+  ];
 
   // ============================================
-  // RENDER
+  // PAGE
   // ============================================
 
   return (
-    <div className="min-h-screen bg-[#F8F7F3] py-10 px-4 sm:px-6 lg:px-8 space-y-10">
+    <div className="min-h-screen bg-gradient-to-b from-[#132c38] via-[#0f212c] to-[#0a151d] text-slate-100 py-12 px-4 sm:px-6 lg:px-8 space-y-12 relative overflow-hidden font-sans">
 
-      {/* ======================================
-          TITLE
-      ======================================= */}
+      {/* ====================================== */}
+      {/* BACKGROUND AMBIENT GLOWS */}
+      {/* ====================================== */}
 
-      <div className="max-w-4xl mx-auto text-center space-y-2">
-        <span
-          className="px-3 py-1 text-xs font-extrabold uppercase rounded-full"
-          style={{
-            background: "#FFF4D6",
-            color: "#A54A00",
-          }}
-        >
-          Adoption
-        </span>
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#d4af37]/15 blur-[130px] pointer-events-none rounded-full" />
 
-        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-display">
-          {getTranslation(
-            language,
-            "adoptionHeader"
-          )}
+      <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-emerald-500/10 blur-[150px] pointer-events-none rounded-full" />
+
+      {/* ====================================== */}
+      {/* HERO HEADER */}
+      {/* ====================================== */}
+
+      <div className="max-w-3xl mx-auto text-center space-y-3 relative z-10">
+
+        <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#fef0cd] via-[#e5c158] to-[#cba33d] drop-shadow-sm">
+          Care that goes the extra mile.
         </h1>
 
-        <p className="text-xs sm:text-sm text-slate-600">
-          {language === "bn"
-            ? "নিচের ফিল্টারের মাধ্যমে আপনার পছন্দ টিউন করুন। পছন্দ হলে ডানে সোয়াইপ করুন, এড়িয়ে যেতে বামে সোয়াইপ করুন।"
-            : "Use the survey controls below to match desirable pet criteria. Swipe Right to adopt, Swipe Left to skip."}
+        <p className="text-sm sm:text-base text-slate-300 font-medium">
+          Unlock our pet service designed for the pet parents who want the very best for their pets
         </p>
+
+        <p className="text-xs font-bold text-[#e5c158] pt-1">
+          Less than Tk 17/day
+        </p>
+
       </div>
 
-      {/* ======================================
-          PREFERENCE SURVEY
-      ======================================= */}
+      {/* ====================================== */}
+      {/* PRICING BADGE */}
+      {/* ====================================== */}
 
-      <div
-        className="max-w-4xl mx-auto rounded-3xl p-5 shadow-md border border-[#E8E1D5] space-y-4"
-        id="adoption-survey-boxes"
-        style={{
-          background: "#F7F1E8",
-        }}
-      >
-        {/* Survey Header */}
+      <div className="flex items-center justify-center gap-2 relative z-10">
 
-        <div className="flex items-center justify-between border-b border-[#E8E1D5] pb-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-[#2D241D]">
-            <SlidersHorizontal className="w-4 h-4 text-[#2D241D]" />
-
-            <span>
-              {language === "bn"
-                ? "পছন্দের বৈশিষ্ট্য নির্বাচন করুন (Survey Preferences)"
-                : "Pet Desirable Preference Survey"}
-            </span>
-          </div>
-
-          <span className="text-[11px] font-semibold text-[#2D241D]">
-            {language === "bn"
-              ? `ম্যাচ করা পেট সংখ্যা: ${filteredListings.length}`
-              : `Matched Pets: ${filteredListings.length}`}
-          </span>
+        <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shadow-sm">
+          <Check className="w-3.5 h-3.5 stroke-[3]" />
         </div>
 
-        {/* ====================================
-            PET TYPE
-        ===================================== */}
+        <span className="px-4 py-1.5 bg-gradient-to-r from-[#dfba61] via-[#c6a043] to-[#b88e2c] text-slate-950 font-black text-xs rounded-md shadow-[0_4px_14px_rgba(15,82,72,0.35)] border border-[#f3e1b6]/40">
+          Tk 500/ Month
+        </span>
 
-        <div className="space-y-5 text-xs">
-
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <span className="font-bold text-slate-900">
-                {language === "bn"
-                  ? "প্রাণীর ধরন"
-                  : "Pet Type"}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {speciesOptions.map(
-                (option) => (
-                  <button
-                    key={
-                      option.value
-                    }
-                    type="button"
-                    onClick={() => {
-                      setSelectedSpecies(
-                        option.value as
-                          | PetSpecies
-                          | "all"
-                      );
-
-                      setCurrentIndex(
-                        0
-                      );
-                    }}
-                    className={`rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-200 ${
-                      selectedSpecies ===
-                      option.value
-                        ? "bg-[#F3EEE6] text-[#2D241D] border border-[#D7C8AE] shadow-[0_1px_0_rgba(0,0,0,0.03)] hover:bg-[#F0E9DF]"
-                        : "bg-white text-[#374151] border border-[#E8E1D5] hover:bg-[#F7F1E8]"
-                    }`}
-                  >
-                    {
-                      option.label
-                    }
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* ====================================
-              BEHAVIOR
-          ===================================== */}
-
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <span className="font-bold text-slate-900">
-                {language === "bn"
-                  ? "আচরণ"
-                  : "Behavior"}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {behaviourOptions.map(
-                (option) => (
-                  <button
-                    key={
-                      option.value
-                    }
-                    type="button"
-                    onClick={() => {
-                      setSelectedBehaviour(
-                        option.value
-                      );
-
-                      setCurrentIndex(
-                        0
-                      );
-                    }}
-                    className={`rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-200 ${
-                      selectedBehaviour ===
-                      option.value
-                        ? "bg-[#F3EEE6] text-[#2D241D] border border-[#D7C8AE] shadow-[0_1px_0_rgba(0,0,0,0.03)] hover:bg-[#F0E9DF]"
-                        : "bg-white text-[#374151] border border-[#E8E1D5] hover:bg-[#F7F1E8]"
-                    }`}
-                  >
-                    {
-                      option.label
-                    }
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* ====================================
-              COLOR
-          ===================================== */}
-
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <span className="font-bold text-slate-900">
-                {language === "bn"
-                  ? "রঙ"
-                  : "Color"}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {colorOptions.map(
-                (option) => (
-                  <button
-                    key={
-                      option.value
-                    }
-                    type="button"
-                    onClick={() => {
-                      setSelectedColor(
-                        option.value
-                      );
-
-                      setCurrentIndex(
-                        0
-                      );
-                    }}
-                    className={`rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-200 ${
-                      selectedColor ===
-                      option.value
-                        ? "bg-[#F3EEE6] text-[#2D241D] border border-[#D7C8AE] shadow-[0_1px_0_rgba(0,0,0,0.03)] hover:bg-[#F0E9DF]"
-                        : "bg-white text-[#374151] border border-[#E8E1D5] hover:bg-[#F7F1E8]"
-                    }`}
-                  >
-                    {
-                      option.label
-                    }
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* ====================================
-              AGE
-          ===================================== */}
-
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <span className="font-bold text-slate-900">
-                {language === "bn"
-                  ? "বয়স"
-                  : "Age"}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {ageOptions.map(
-                (option) => (
-                  <button
-                    key={
-                      option.value
-                    }
-                    type="button"
-                    onClick={() => {
-                      setSelectedAgeGroup(
-                        option.value
-                      );
-
-                      setCurrentIndex(
-                        0
-                      );
-                    }}
-                    className={`rounded-full px-4 py-2 text-[11px] font-semibold transition-colors duration-200 ${
-                      selectedAgeGroup ===
-                      option.value
-                        ? "bg-[#F3EEE6] text-[#2D241D] border border-[#D7C8AE] shadow-[0_1px_0_rgba(0,0,0,0.03)] hover:bg-[#F0E9DF]"
-                        : "bg-white text-[#374151] border border-[#E8E1D5] hover:bg-[#F7F1E8]"
-                    }`}
-                  >
-                    {
-                      option.label
-                    }
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* ======================================
-          TINDER CARD
-      ======================================= */}
+      {/* ====================================== */}
+      {/* PREMIUM SERVICES */}
+      {/* ====================================== */}
 
-      <div className="max-w-md mx-auto relative h-[520px] flex flex-col items-center justify-center">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
 
-        {currentPet ? (
+        {services.map((service) => (
+
           <div
-            className={`relative w-full h-full bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 transition-all duration-300 transform ${
-              swipeDirection === "left"
-                ? "-translate-x-32 -rotate-12 opacity-0"
-                : swipeDirection ===
-                  "right"
-                ? "translate-x-32 rotate-12 opacity-0"
-                : "translate-x-0 rotate-0 opacity-100"
-            }`}
+            key={service.id}
+            className="bg-[#1c3a32]/90 border border-[#cba33d]/30 rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:border-[#dfba61]/60 transition-all flex flex-col justify-between"
           >
 
-            {/* Pet Image */}
+            {/* ================================= */}
+            {/* SERVICE IMAGE */}
+            {/* ================================= */}
 
-            <img
-              src={
-                currentPet.image
-              }
-              alt={
-                currentPet.name
-              }
-              className="w-full h-3/5 object-cover"
-            />
-
-            {/* Pet ID */}
-
-            <div className="absolute top-4 left-4">
-              <span className="px-3 py-1 bg-slate-900/80 text-white backdrop-blur-md rounded-full text-xs font-bold font-mono">
-                ID:{" "}
-                {
-                  currentPet.pet_id
-                }
-              </span>
-            </div>
-
-            {/* Vaccination */}
-
-            <div className="absolute top-4 right-4">
-              <span className="px-3 py-1 bg-[#355E3B] text-white rounded-full text-xs font-bold shadow-sm">
-                {currentPet.vaccinated
-                  ? "Vaccinated: Yes"
-                  : "Vaccinated: No"}
-              </span>
-            </div>
-
-            {/* Card Info */}
-
-            <div className="p-5 space-y-2">
-
-              <div className="flex items-center justify-between">
-
-                <div>
-                  <h3 className="text-2xl font-black text-slate-900 font-display">
-                    {
-                      currentPet.name
-                    }
-                    ,{" "}
-                    <span className="text-base font-normal text-slate-600">
-                      {
-                        currentPet.ageMonths
-                      }{" "}
-                      months
-                    </span>
-                  </h3>
-
-                  <p className="text-xs font-semibold text-emerald-700">
-                    {
-                      currentPet.breed
-                    }{" "}
-                    •{" "}
-                    {
-                      currentPet.color
-                    }
-                  </p>
-                </div>
-
-                <span className="capitalize px-2.5 py-1 bg-amber-100 text-amber-900 font-bold text-[10px] rounded-lg">
-                  {
-                    currentPet.behaviour
-                  }
-                </span>
-              </div>
-
-              {/* Location */}
-
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
-
-                <span>
-                  {
-                    currentPet.location
-                  }
-                  ,{" "}
-                  {
-                    currentPet.city
-                  }
-                </span>
-              </div>
-
-              {/* Description */}
-
-              <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
-                {language ===
-                "bn"
-                  ? currentPet.descriptionBn
-                  : currentPet.descriptionEn}
-              </p>
-            </div>
-
-            {/* Action Buttons */}
-
-            <div className="absolute bottom-4 left-0 right-0 px-6 flex items-center justify-around">
-
-              {/* Skip */}
-
-              <button
-                onClick={() =>
-                  handleSwipe(
-                    "left"
-                  )
-                }
-                className="w-14 h-14 rounded-full bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 border border-slate-300 flex items-center justify-center shadow-lg transition-transform active:scale-95"
-                title="Discard / Skip"
-              >
-                <X className="w-7 h-7" />
-              </button>
-
-              {/* View Info */}
-
-              <button
-                onClick={() =>
-                  setSelectedPetForModal(
-                    currentPet
-                  )
-                }
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-2xl shadow-md"
-              >
-                {language ===
-                "bn"
-                  ? "প্রোফাইল দেখুন"
-                  : "View Info"}
-              </button>
-
-              {/* Approve */}
-
-              <button
-                onClick={() =>
-                  handleSwipe(
-                    "right"
-                  )
-                }
-                className="w-14 h-14 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center shadow-lg shadow-rose-500/30 transition-transform active:scale-95"
-                title="Approve Adoption"
-              >
-                <Heart className="w-7 h-7 fill-current animate-pulse" />
-              </button>
-            </div>
-          </div>
-        ) : (
-          // ==================================
-          // NO MATCHING PETS
-          // ==================================
-
-          <div className="text-center p-8 bg-white rounded-3xl shadow-md border border-slate-200">
-
-            <Heart className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-
-            <p className="text-sm font-bold text-slate-700">
-              {language ===
-              "bn"
-                ? "এই তালিকায় আর কোনো মিল পাওয়া যায়নি।"
-                : "No more matching pets in list."}
-            </p>
-
-            <button
-              onClick={
-                resetFilters
-              }
-              className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl"
-            >
-              {language ===
-              "bn"
-                ? "ফিল্টার রিসেট করুন"
-                : "Reset Survey Filters"}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* ======================================
-          SWIPE GUIDE
-      ======================================= */}
-
-      <div className="flex items-center justify-center gap-8 text-xs font-bold text-slate-500 max-w-sm mx-auto">
-
-        <span className="flex items-center gap-1 text-slate-600">
-          <X className="w-4 h-4 text-slate-400" />
-
-          <span>
-            {getTranslation(
-              language,
-              "swipeLeftToPass"
-            )}
-          </span>
-        </span>
-
-        <span className="flex items-center gap-1 text-rose-600">
-          <Heart className="w-4 h-4 fill-current text-rose-500" />
-
-          <span>
-            {getTranslation(
-              language,
-              "swipeRightToAdopt"
-            )}
-          </span>
-        </span>
-      </div>
-
-      {/* ======================================
-          ADOPTION MODAL
-      ======================================= */}
-
-      {selectedPetForModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl border border-slate-200 relative">
-
-            {/* Close */}
-
-            <button
-              onClick={() => {
-                setSelectedPetForModal(
-                  null
-                );
-
-                setAdoptionSubmitted(
-                  false
-                );
-              }}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-700"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Pet Header */}
-
-            <div className="flex items-center gap-4">
+            <div className="h-44 bg-slate-800 relative overflow-hidden">
 
               <img
-                src={
-                  selectedPetForModal.image
-                }
-                alt={
-                  selectedPetForModal.name
-                }
-                className="w-20 h-20 rounded-2xl object-cover ring-2 ring-emerald-500"
+                src={service.image}
+                alt={service.title}
+                className="w-full h-full object-cover"
               />
 
-              <div>
+              <span className="absolute top-2 right-2 px-2.5 py-1 bg-slate-950/80 backdrop-blur-xs text-amber-200 text-[10px] font-bold rounded-md border border-[#cba33d]/30">
+                {service.tag}
+              </span>
 
-                <span className="px-2 py-0.5 text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 rounded-md">
-                  ID: #
-                  {
-                    selectedPetForModal.pet_id
-                  }
-                </span>
+            </div>
 
-                <h3 className="text-xl font-black text-slate-900 font-display mt-0.5">
-                  {
-                    selectedPetForModal.name
-                  }
+            {/* ================================= */}
+            {/* SERVICE DETAILS */}
+            {/* ================================= */}
+
+            <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
+
+              <div className="space-y-2">
+
+                {/* Icon */}
+
+                <div className="w-10 h-10 rounded-xl bg-[#0f212c] border border-[#cba33d]/40 flex items-center justify-center shadow-inner">
+                  {service.icon}
+                </div>
+
+                {/* Title */}
+
+                <h3 className="font-extrabold text-slate-100 text-base leading-snug">
+                  {service.title}
                 </h3>
 
-                <p className="text-xs text-slate-600 font-medium">
-                  {
-                    selectedPetForModal.breed
-                  }{" "}
-                  •{" "}
-                  {
-                    selectedPetForModal.ageMonths
-                  }{" "}
-                  months
+                {/* Description */}
+
+                <p className="text-xs text-emerald-100/70 leading-relaxed font-medium">
+                  {service.description}
                 </p>
+
               </div>
+
             </div>
 
-            {/* Pet Details */}
-
-            <div className="space-y-2 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-
-              <p>
-                <strong>
-                  Location:
-                </strong>{" "}
-                {
-                  selectedPetForModal.location
-                }
-                ,{" "}
-                {
-                  selectedPetForModal.city
-                }
-              </p>
-
-              <p>
-                <strong>
-                  Color:
-                </strong>{" "}
-                {
-                  selectedPetForModal.color
-                }
-              </p>
-
-              <p>
-                <strong>
-                  Vaccinated:
-                </strong>{" "}
-                {
-                  selectedPetForModal.vaccinated
-                    ? "Yes"
-                    : "No"
-                }
-              </p>
-
-              <p>
-                <strong>
-                  Description:
-                </strong>{" "}
-                {
-                  language === "bn"
-                    ? selectedPetForModal.descriptionBn
-                    : selectedPetForModal.descriptionEn
-                }
-              </p>
-            </div>
-
-            {/* Adoption Confirmation */}
-
-            {adoptionSubmitted ? (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center text-xs font-bold text-emerald-800 flex items-center justify-center gap-2">
-
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-
-                <span>
-                  {language ===
-                  "bn"
-                    ? "দত্তক আবেদন Cart-এ যোগ হয়েছে!"
-                    : "Adoption Request Added to Cart!"}
-                </span>
-              </div>
-            ) : (
-              <button
-                onClick={
-                  handleConfirmAdoption
-                }
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-              >
-                <Heart className="w-4 h-4 fill-current" />
-
-                <span>
-                  {getTranslation(
-                    language,
-                    "adoptNowBtn"
-                  )}
-                </span>
-              </button>
-            )}
           </div>
-        </div>
-      )}
+
+        ))}
+
+      </div>
+
+      {/* ====================================== */}
+      {/* CTA */}
+      {/* ====================================== */}
+
+      <div className="text-center space-y-2 pt-2 pb-8 relative z-10">
+
+        <button
+          onClick={handleContinueToCart}
+          className="px-8 py-3.5 bg-gradient-to-r from-[#dfba61] via-[#c6a043] to-[#b88e2c] hover:from-[#ebc66f] hover:to-[#cfa339] text-slate-950 font-black text-sm rounded-xl shadow-[0_8px_20px_rgba(19,44,56,0.35)] hover:shadow-[0_10px_25px_rgba(15,82,72,0.45)] transition-all transform hover:-translate-y-0.5 cursor-pointer inline-flex items-center gap-2 border border-[#f3e1b6]/40"
+        >
+
+          <span>
+            Continue — Tk 500
+          </span>
+
+          <ArrowRight className="w-4 h-4" />
+
+        </button>
+
+        <p className="text-xs text-slate-400 font-medium">
+          Cancel Anytime
+        </p>
+
+      </div>
+
     </div>
   );
-}; 
+};
