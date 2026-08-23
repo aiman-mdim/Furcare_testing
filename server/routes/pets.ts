@@ -1,395 +1,377 @@
-import express from "express";
-import mongoose from "mongoose";
-
-import Pet from "../models/Pet";
-import {
-  requireAuth,
-  AuthRequest,
-} from "../middleware/auth";
-
-const router = express.Router();
+import mongoose, {
+  Document,
+  Model,
+  Schema,
+} from "mongoose";
 
 // ============================================
-// GET ALL PETS FOR LOGGED-IN USER
+// PET DOCUMENT TYPE
 // ============================================
 
-router.get(
-  "/",
-  requireAuth,
-  async (req: AuthRequest, res) => {
-    try {
-      if (!req.userId) {
-        return res.status(401).json({
-          error: "Authentication required",
-        });
-      }
+export interface IPet extends Document {
+  owner_id: mongoose.Types.ObjectId;
 
-      const pets = await Pet.find({
-        owner_id: req.userId,
-      }).sort({
-        createdAt: -1,
-      });
+  name: string;
 
-      return res.json({
-        pets,
-      });
-    } catch (error) {
-      console.error(
-        "GET /api/pets error:",
-        error
-      );
+  species:
+    | "dog"
+    | "cat"
+    | "rabbit";
 
-      return res.status(500).json({
-        error: "Failed to fetch pets",
-      });
+  breed: string;
+
+  ageYears: number;
+
+  ageMonths: number;
+
+  color: string;
+
+  weightKg: number;
+
+  gender:
+    | "male"
+    | "female";
+
+  photoUrl: string;
+
+  allergies: string[];
+
+  vaccinations: {
+    id: string;
+    vaccineName: string;
+    givenDate: string;
+    nextDueDate: string;
+    status:
+      | "completed"
+      | "upcoming"
+      | "overdue";
+    batchNumber?: string;
+    veterinarian: string;
+    postVaccineTipsEn?: string[];
+    postVaccineTipsBn?: string[];
+  }[];
+
+  medicalHistory: {
+    id: string;
+    date: string;
+    title: string;
+    description: string;
+    doctorName: string;
+    type:
+      | "vaccine"
+      | "surgery"
+      | "checkup"
+      | "allergy";
+  }[];
+
+  microchipId?: string;
+
+  createdAt: Date;
+
+  updatedAt: Date;
+}
+
+// ============================================
+// VACCINE RECORD SCHEMA
+// ============================================
+
+const VaccineRecordSchema =
+  new Schema(
+    {
+      id: {
+        type: String,
+        required: true,
+      },
+
+      vaccineName: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      givenDate: {
+        type: String,
+        required: true,
+      },
+
+      nextDueDate: {
+        type: String,
+        required: true,
+      },
+
+      status: {
+        type: String,
+        enum: [
+          "completed",
+          "upcoming",
+          "overdue",
+        ],
+        required: true,
+      },
+
+      batchNumber: {
+        type: String,
+        trim: true,
+      },
+
+      veterinarian: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      postVaccineTipsEn: {
+        type: [String],
+        default: [],
+      },
+
+      postVaccineTipsBn: {
+        type: [String],
+        default: [],
+      },
+    },
+    {
+      _id: false,
     }
-  }
-);
+  );
 
 // ============================================
-// CREATE PET
+// MEDICAL RECORD SCHEMA
 // ============================================
 
-router.post(
-  "/",
-  requireAuth,
-  async (req: AuthRequest, res) => {
-    try {
-      if (!req.userId) {
-        return res.status(401).json({
-          error: "Authentication required",
-        });
-      }
+const MedicalRecordSchema =
+  new Schema(
+    {
+      id: {
+        type: String,
+        required: true,
+      },
 
-      const {
-        name,
-        species,
-        breed,
-        ageYears,
-        ageMonths,
-        color,
-        weightKg,
-        gender,
-        photoUrl,
-        allergies,
-        vaccinations,
-        medicalHistory,
-        microchipId,
-      } = req.body;
+      date: {
+        type: String,
+        required: true,
+      },
 
-      // -------------------------------
-      // Validation
-      // -------------------------------
+      title: {
+        type: String,
+        required: true,
+        trim: true,
+      },
 
-      if (!name) {
-        return res.status(400).json({
-          error: "Pet name is required",
-        });
-      }
+      description: {
+        type: String,
+        required: true,
+        trim: true,
+      },
 
-      if (
-        !species ||
-        !["dog", "cat", "rabbit"].includes(
-          species
-        )
-      ) {
-        return res.status(400).json({
-          error:
-            "Species must be dog, cat, or rabbit",
-        });
-      }
+      doctorName: {
+        type: String,
+        required: true,
+        trim: true,
+      },
 
-      if (!breed) {
-        return res.status(400).json({
-          error: "Breed is required",
-        });
-      }
+      type: {
+        type: String,
+        enum: [
+          "vaccine",
+          "surgery",
+          "checkup",
+          "allergy",
+        ],
+        required: true,
+      },
+    },
+    {
+      _id: false,
+    }
+  );
 
-      if (
-        !gender ||
-        !["male", "female"].includes(
-          gender
-        )
-      ) {
-        return res.status(400).json({
-          error:
-            "Gender must be male or female",
-        });
-      }
+// ============================================
+// PET SCHEMA
+// ============================================
 
-      // -------------------------------
-      // Create pet
-      // -------------------------------
+const PetSchema =
+  new Schema<IPet>(
+    {
+      // ----------------------------------------
+      // OWNER
+      // ----------------------------------------
       //
       // IMPORTANT:
-      // owner_id comes from JWT.
+      // This value comes from the authenticated
+      // user's JWT in server/routes/pets.ts.
       //
-      // We DO NOT accept owner_id
-      // from the frontend.
-      // -------------------------------
+      // The frontend should NEVER be trusted
+      // to choose the owner_id.
+      // ----------------------------------------
 
-      const pet = await Pet.create({
-        owner_id: new mongoose.Types.ObjectId(
-          req.userId
-        ),
+      owner_id: {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+        index: true,
+      },
 
-        name: String(name).trim(),
+      // ----------------------------------------
+      // BASIC INFORMATION
+      // ----------------------------------------
 
-        species,
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 100,
+      },
 
-        breed: String(breed).trim(),
+      species: {
+        type: String,
+        enum: [
+          "dog",
+          "cat",
+          "rabbit",
+        ],
+        required: true,
+      },
 
-        ageYears:
-          Number.isFinite(
-            Number(ageYears)
-          )
-            ? Number(ageYears)
-            : 0,
+      breed: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 100,
+      },
 
-        ageMonths:
-          Number.isFinite(
-            Number(ageMonths)
-          )
-            ? Number(ageMonths)
-            : 0,
+      // ----------------------------------------
+      // AGE
+      // ----------------------------------------
 
-        color:
-          typeof color === "string"
-            ? color.trim()
-            : "",
+      ageYears: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
 
-        weightKg:
-          Number.isFinite(
-            Number(weightKg)
-          )
-            ? Number(weightKg)
-            : 0,
+      ageMonths: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 11,
+      },
 
-        gender,
+      // ----------------------------------------
+      // PHYSICAL INFORMATION
+      // ----------------------------------------
 
-        photoUrl:
-          typeof photoUrl === "string"
-            ? photoUrl
-            : "",
+      color: {
+        type: String,
+        default: "",
+        trim: true,
+        maxlength: 100,
+      },
 
-        allergies:
-          Array.isArray(allergies)
-            ? allergies
-            : [],
+      weightKg: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
 
-        vaccinations:
-          Array.isArray(vaccinations)
-            ? vaccinations
-            : [],
+      gender: {
+        type: String,
+        enum: [
+          "male",
+          "female",
+        ],
+        required: true,
+      },
 
-        medicalHistory:
-          Array.isArray(
-            medicalHistory
-          )
-            ? medicalHistory
-            : [],
+      // ----------------------------------------
+      // PHOTO
+      // ----------------------------------------
 
-        microchipId:
-          typeof microchipId === "string"
-            ? microchipId.trim()
-            : "",
-      });
+      photoUrl: {
+        type: String,
+        default: "",
+        trim: true,
+      },
 
-      return res.status(201).json({
-        pet,
-      });
-    } catch (error) {
-      console.error(
-        "POST /api/pets error:",
-        error
-      );
+      // ----------------------------------------
+      // ALLERGIES
+      // ----------------------------------------
 
-      return res.status(500).json({
-        error: "Failed to register pet",
-      });
+      allergies: {
+        type: [String],
+        default: [],
+      },
+
+      // ----------------------------------------
+      // VACCINATIONS
+      // ----------------------------------------
+
+      vaccinations: {
+        type: [
+          VaccineRecordSchema,
+        ],
+        default: [],
+      },
+
+      // ----------------------------------------
+      // MEDICAL HISTORY
+      // ----------------------------------------
+
+      medicalHistory: {
+        type: [
+          MedicalRecordSchema,
+        ],
+        default: [],
+      },
+
+      // ----------------------------------------
+      // MICROCHIP
+      // ----------------------------------------
+
+      microchipId: {
+        type: String,
+        default: undefined,
+        trim: true,
+      },
+    },
+    {
+      timestamps: true,
+
+      versionKey: false,
     }
-  }
-);
+  );
 
 // ============================================
-// GET ONE PET
+// INDEX
+// ============================================
+//
+// This makes:
+// GET /api/pets
+//
+// much more efficient because your route uses:
+//
+// Pet.find({ owner_id: req.userId })
+//
 // ============================================
 
-router.get(
-  "/:id",
-  requireAuth,
-  async (req: AuthRequest, res) => {
-    try {
-      if (!req.userId) {
-        return res.status(401).json({
-          error: "Authentication required",
-        });
-      }
-
-      if (
-        !mongoose.Types.ObjectId.isValid(
-          req.params.id
-        )
-      ) {
-        return res.status(400).json({
-          error: "Invalid pet ID",
-        });
-      }
-
-      const pet = await Pet.findOne({
-        _id: req.params.id,
-
-        owner_id: req.userId,
-      });
-
-      if (!pet) {
-        return res.status(404).json({
-          error: "Pet not found",
-        });
-      }
-
-      return res.json({
-        pet,
-      });
-    } catch (error) {
-      console.error(
-        "GET /api/pets/:id error:",
-        error
-      );
-
-      return res.status(500).json({
-        error: "Failed to fetch pet",
-      });
-    }
-  }
-);
+PetSchema.index({
+  owner_id: 1,
+  createdAt: -1,
+});
 
 // ============================================
-// UPDATE PET
+// MODEL
+// ============================================
+//
+// Prevent model re-compilation during
+// development/hot reload.
 // ============================================
 
-router.put(
-  "/:id",
-  requireAuth,
-  async (req: AuthRequest, res) => {
-    try {
-      if (!req.userId) {
-        return res.status(401).json({
-          error: "Authentication required",
-        });
-      }
+const Pet: Model<IPet> =
+  mongoose.models.Pet ||
+  mongoose.model<IPet>(
+    "Pet",
+    PetSchema
+  );
 
-      if (
-        !mongoose.Types.ObjectId.isValid(
-          req.params.id
-        )
-      ) {
-        return res.status(400).json({
-          error: "Invalid pet ID",
-        });
-      }
-
-      // Never allow frontend to change owner
-      const {
-        owner_id,
-        _id,
-        createdAt,
-        updatedAt,
-        ...updates
-      } = req.body;
-
-      const pet =
-        await Pet.findOneAndUpdate(
-          {
-            _id: req.params.id,
-
-            owner_id: req.userId,
-          },
-
-          updates,
-
-          {
-            new: true,
-
-            runValidators: true,
-          }
-        );
-
-      if (!pet) {
-        return res.status(404).json({
-          error: "Pet not found",
-        });
-      }
-
-      return res.json({
-        pet,
-      });
-    } catch (error) {
-      console.error(
-        "PUT /api/pets/:id error:",
-        error
-      );
-
-      return res.status(400).json({
-        error: "Failed to update pet",
-      });
-    }
-  }
-);
-
-// ============================================
-// DELETE PET
-// ============================================
-
-router.delete(
-  "/:id",
-  requireAuth,
-  async (req: AuthRequest, res) => {
-    try {
-      if (!req.userId) {
-        return res.status(401).json({
-          error: "Authentication required",
-        });
-      }
-
-      if (
-        !mongoose.Types.ObjectId.isValid(
-          req.params.id
-        )
-      ) {
-        return res.status(400).json({
-          error: "Invalid pet ID",
-        });
-      }
-
-      const pet =
-        await Pet.findOneAndDelete({
-          _id: req.params.id,
-
-          owner_id: req.userId,
-        });
-
-      if (!pet) {
-        return res.status(404).json({
-          error: "Pet not found",
-        });
-      }
-
-      return res.json({
-        message:
-          "Pet deleted successfully",
-      });
-    } catch (error) {
-      console.error(
-        "DELETE /api/pets/:id error:",
-        error
-      );
-
-      return res.status(500).json({
-        error: "Failed to delete pet",
-      });
-    }
-  }
-);
-
-export default router;
+export default Pet; 

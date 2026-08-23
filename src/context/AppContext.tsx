@@ -14,11 +14,10 @@ import {
   CartItem,
   Product,
   AdoptionListing,
+  CartItemType,
 } from "../types";
 
-import {
-  mockAdoptionListings,
-} from "../data/mockData";
+import { mockAdoptionListings } from "../data/mockData";
 
 import { authApi } from "../services/auth";
 import { petsApi } from "../services/pets";
@@ -61,12 +60,15 @@ interface ToastNotification {
 // ============================================
 
 interface AppContextType {
+  // Language
   language: Language;
   setLanguage: (lang: Language) => void;
 
+  // Navigation
   activePage: PageName;
   setActivePage: (page: PageName) => void;
 
+  // User
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
 
@@ -84,9 +86,13 @@ interface AppContextType {
 
   setActivePetId: (id: string) => void;
 
+<<<<<<< Updated upstream
   addPet: (
     pet: Omit<Pet, "id">
   ) => Promise<void>;
+=======
+  addPet: (pet: Omit<Pet, "id">) => Promise<void>;
+>>>>>>> Stashed changes
 
   // Cart
   cart: CartItem[];
@@ -94,7 +100,7 @@ interface AppContextType {
   addToCart: (
     product: Product,
     quantity?: number,
-    type?: CartItem["type"],
+    type?: CartItemType,
     customData?: Record<string, any>
   ) => boolean;
 
@@ -168,7 +174,6 @@ const AppContext =
 export const AppProvider: React.FC<{
   children: ReactNode;
 }> = ({ children }) => {
-
   // ==========================================
   // LANGUAGE
   // ==========================================
@@ -196,6 +201,7 @@ export const AppProvider: React.FC<{
   // ==========================================
   // PETS
   // ==========================================
+<<<<<<< Updated upstream
   //
   // IMPORTANT:
   //
@@ -215,6 +221,8 @@ export const AppProvider: React.FC<{
   // pets = []
   //
   // ==========================================
+=======
+>>>>>>> Stashed changes
 
   const [pets, setPets] =
     useState<Pet[]>([]);
@@ -238,6 +246,7 @@ export const AppProvider: React.FC<{
             "furcare_cart"
           );
 
+<<<<<<< Updated upstream
         return saved
           ? JSON.parse(saved)
           : [];
@@ -247,6 +256,55 @@ export const AppProvider: React.FC<{
           error
         );
 
+=======
+        if (!saved) {
+          return [];
+        }
+
+        const parsed =
+          JSON.parse(saved);
+
+        if (!Array.isArray(parsed)) {
+          return [];
+        }
+
+        /*
+         * Compatibility protection:
+         *
+         * Old cart items may not have an id.
+         * Old cart items may also not have a type.
+         *
+         * This converts old saved cart items into
+         * the new CartItem structure.
+         */
+
+        return parsed.map(
+          (item: any, index: number) => ({
+            id:
+              item.id ||
+              `product-restored-${Date.now()}-${index}`,
+
+            product: item.product,
+
+            quantity:
+              typeof item.quantity === "number"
+                ? item.quantity
+                : 1,
+
+            type:
+              item.type || "product",
+
+            customData:
+              item.customData || {},
+          })
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load cart:",
+          error
+        );
+
+>>>>>>> Stashed changes
         return [];
       }
     });
@@ -294,6 +352,20 @@ export const AppProvider: React.FC<{
 
   // ==========================================
   // REMOVE TOAST
+<<<<<<< Updated upstream
+  // ==========================================
+
+  const removeToast = (
+    id: string
+  ) => {
+    setToasts((prev) =>
+      prev.filter(
+        (toast) =>
+          toast.id !== id
+      )
+    );
+  };
+=======
   // ==========================================
 
   const removeToast = (
@@ -322,6 +394,252 @@ export const AppProvider: React.FC<{
         .toString(36)
         .substring(2, 11);
 
+    const toast: ToastNotification = {
+      id,
+      message,
+      type,
+      time:
+        new Date().toLocaleTimeString(),
+    };
+
+    setToasts((prev) => [
+      ...prev,
+      toast,
+    ]);
+
+    setTimeout(() => {
+      removeToast(id);
+    }, 5000);
+  };
+
+  // ==========================================
+  // RESTORE AUTHENTICATED SESSION
+  // ==========================================
+
+  useEffect(() => {
+    let mounted = true;
+
+    const restoreSession =
+      async () => {
+        try {
+          const result =
+            await authApi.me();
+
+          if (!mounted) {
+            return;
+          }
+
+          if (result?.user) {
+            setCurrentUser(
+              result.user
+            );
+          } else {
+            setCurrentUser(null);
+          }
+        } catch (error) {
+          if (!mounted) {
+            return;
+          }
+
+          console.log(
+            "No authenticated session found."
+          );
+
+          setCurrentUser(null);
+        }
+      };
+
+    restoreSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // ==========================================
+  // LOAD PETS FROM DATABASE
+  // ==========================================
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadPets =
+      async () => {
+        // --------------------------------------
+        // NO USER
+        // --------------------------------------
+
+        if (!currentUser?.id) {
+          setPets([]);
+          setActivePetId("");
+
+          return;
+        }
+
+        // --------------------------------------
+        // USER LOGGED IN
+        // --------------------------------------
+
+        try {
+          const userPets =
+            await petsApi.getMyPets();
+
+          if (!mounted) {
+            return;
+          }
+
+          setPets(userPets);
+
+          // ------------------------------------
+          // SELECT FIRST PET
+          // ------------------------------------
+
+          if (
+            userPets.length > 0
+          ) {
+            setActivePetId(
+              userPets[0].id
+            );
+          } else {
+            setActivePetId("");
+          }
+        } catch (error) {
+          if (!mounted) {
+            return;
+          }
+
+          console.error(
+            "Failed to load pets:",
+            error
+          );
+
+          setPets([]);
+          setActivePetId("");
+
+          addToast(
+            error instanceof Error
+              ? error.message
+              : "Failed to load your pets.",
+            "warning"
+          );
+        }
+      };
+
+    loadPets();
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentUser?.id]);
+
+  // ==========================================
+  // SAVE CART
+  // ==========================================
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "furcare_cart",
+        JSON.stringify(cart)
+      );
+    } catch (error) {
+      console.error(
+        "Failed to save cart:",
+        error
+      );
+    }
+  }, [cart]);
+
+  // ==========================================
+  // LOAD USER APPOINTMENTS
+  // ==========================================
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      setAppointments([]);
+
+      return;
+    }
+
+    try {
+      const saved =
+        localStorage.getItem(
+          `furcare_appts_${currentUser.id}`
+        );
+
+      if (saved) {
+        const parsed =
+          JSON.parse(saved);
+
+        if (
+          Array.isArray(parsed)
+        ) {
+          setAppointments(
+            parsed
+          );
+        } else {
+          setAppointments([]);
+        }
+      } else {
+        setAppointments([]);
+      }
+    } catch (error) {
+      console.error(
+        "Failed to load appointments:",
+        error
+      );
+
+      setAppointments([]);
+    }
+  }, [currentUser?.id]);
+
+  // ==========================================
+  // SAVE USER APPOINTMENTS
+  // ==========================================
+
+  useEffect(() => {
+    if (!currentUser?.id) {
+      return;
+    }
+
+    try {
+      localStorage.setItem(
+        `furcare_appts_${currentUser.id}`,
+        JSON.stringify(
+          appointments
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to save appointments:",
+        error
+      );
+    }
+  }, [
+    appointments,
+    currentUser?.id,
+  ]);
+>>>>>>> Stashed changes
+
+  // ==========================================
+  // PAGE NAVIGATION
+  // ==========================================
+
+<<<<<<< Updated upstream
+  const addToast = (
+    message: string,
+    type: ToastNotification["type"] =
+      "info"
+=======
+  const setActivePage = (
+    page: PageName
+>>>>>>> Stashed changes
+  ) => {
+    // ----------------------------------------
+    // PROTECTED PAGES
+    // ----------------------------------------
+
+<<<<<<< Updated upstream
     const toast: ToastNotification = {
       id,
       message,
@@ -608,6 +926,8 @@ export const AppProvider: React.FC<{
 
     // Protected pages
 
+=======
+>>>>>>> Stashed changes
     if (
       !currentUser?.id &&
       (
@@ -674,7 +994,10 @@ export const AppProvider: React.FC<{
   const addPet = async (
     petData: Omit<Pet, "id">
   ): Promise<void> => {
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     // ----------------------------------------
     // CHECK AUTHENTICATION
     // ----------------------------------------
@@ -684,6 +1007,7 @@ export const AppProvider: React.FC<{
     }
 
     try {
+<<<<<<< Updated upstream
 
       // --------------------------------------
       // NEVER trust owner_id from frontend
@@ -737,6 +1061,43 @@ export const AppProvider: React.FC<{
         newPet.id
       );
 
+=======
+      // --------------------------------------
+      // NEVER TRUST owner_id FROM FRONTEND
+      // --------------------------------------
+
+      const {
+        owner_id: _ownerId,
+        ...petPayload
+      } = petData;
+
+      // --------------------------------------
+      // CREATE PET IN MONGODB
+      // --------------------------------------
+
+      const newPet =
+        await petsApi.createPet(
+          petPayload
+        );
+
+      // --------------------------------------
+      // UPDATE DASHBOARD
+      // --------------------------------------
+
+      setPets((prev) => [
+        newPet,
+        ...prev,
+      ]);
+
+      // --------------------------------------
+      // SELECT NEW PET
+      // --------------------------------------
+
+      setActivePetId(
+        newPet.id
+      );
+
+>>>>>>> Stashed changes
       // --------------------------------------
       // SUCCESS MESSAGE
       // --------------------------------------
@@ -745,9 +1106,13 @@ export const AppProvider: React.FC<{
         `Registered new pet: ${newPet.name}!`,
         "success"
       );
+<<<<<<< Updated upstream
 
     } catch (error) {
 
+=======
+    } catch (error) {
+>>>>>>> Stashed changes
       console.error(
         "Failed to register pet:",
         error
@@ -769,24 +1134,72 @@ export const AppProvider: React.FC<{
   const addToCart = (
     product: Product,
     quantity: number = 1,
+<<<<<<< Updated upstream
     type: CartItem["type"] =
       "product",
     customData?: Record<string, any>
   ): boolean => {
+=======
+    type: CartItemType = "product",
+    customData?: Record<string, any>
+  ): boolean => {
+    // ----------------------------------------
+    // CHECK AUTHENTICATION
+    // ----------------------------------------
+>>>>>>> Stashed changes
 
     if (!requireAuth()) {
       return false;
     }
 
+    // ----------------------------------------
+    // VALIDATE QUANTITY
+    // ----------------------------------------
+
+    if (
+      !Number.isFinite(quantity) ||
+      quantity <= 0
+    ) {
+      addToast(
+        "Invalid quantity.",
+        "warning"
+      );
+
+      return false;
+    }
+
+    // ----------------------------------------
+    // CREATE UNIQUE ID
+    // ----------------------------------------
+
+    const newItemId =
+      `${type}-${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 9)}`;
+
     setCart((prev) => {
+      /*
+       * IMPORTANT:
+       *
+       * Only normal products are allowed
+       * to merge with an existing cart item.
+       *
+       * Vet appointments, adoption, grooming,
+       * hotel and premium items should remain
+       * separate cart entries.
+       */
 
       const existingIndex =
-        prev.findIndex(
-          (item) =>
-            item.product.product_id ===
-            product.product_id
-        );
+        type === "product"
+          ? prev.findIndex(
+              (item) =>
+                item.product.product_id ===
+                  product.product_id &&
+                item.type === type
+            )
+          : -1;
 
+<<<<<<< Updated upstream
       if (
         existingIndex > -1
       ) {
@@ -802,7 +1215,25 @@ export const AppProvider: React.FC<{
           ...updated[
             existingIndex
           ],
+=======
+      // --------------------------------------
+      // EXISTING NORMAL PRODUCT
+      // --------------------------------------
 
+      if (
+        existingIndex > -1
+      ) {
+        const updated = [
+          ...prev,
+        ];
+>>>>>>> Stashed changes
+
+        updated[
+          existingIndex
+        ] = {
+          ...updated[
+            existingIndex
+          ],
           quantity:
             updated[
               existingIndex
@@ -813,16 +1244,28 @@ export const AppProvider: React.FC<{
         return updated;
       }
 
+      // --------------------------------------
+      // NEW CART ITEM
+      // --------------------------------------
+
+      const newItem: CartItem = {
+        id: newItemId,
+        product,
+        quantity,
+        type,
+        customData:
+          customData || {},
+      };
+
       return [
         ...prev,
-        {
-          product,
-          quantity,
-          type,
-          customData,
-        },
+        newItem,
       ];
     });
+
+    // ----------------------------------------
+    // SUCCESS TOAST
+    // ----------------------------------------
 
     addToast(
       language === "bn"
@@ -842,19 +1285,29 @@ export const AppProvider: React.FC<{
     productId: string,
     quantity: number
   ) => {
-
     if (!requireAuth()) {
       return;
     }
 
-    if (quantity <= 0) {
+    // ----------------------------------------
+    // REMOVE IF ZERO OR LESS
+    // ----------------------------------------
 
+    if (quantity <= 0) {
+<<<<<<< Updated upstream
+
+=======
+>>>>>>> Stashed changes
       removeFromCart(
         productId
       );
 
       return;
     }
+
+    // ----------------------------------------
+    // UPDATE QUANTITY
+    // ----------------------------------------
 
     setCart((prev) =>
       prev.map((item) =>
@@ -876,7 +1329,6 @@ export const AppProvider: React.FC<{
   const removeFromCart = (
     productId: string
   ) => {
-
     if (!requireAuth()) {
       return;
     }
@@ -917,7 +1369,6 @@ export const AppProvider: React.FC<{
   const addAppointment = (
     apptData: Omit<Appointment, "id">
   ) => {
-
     if (!requireAuth()) {
       return;
     }
@@ -953,6 +1404,9 @@ export const AppProvider: React.FC<{
   const cancelAppointment = (
     id: string
   ) => {
+    if (!requireAuth()) {
+      return;
+    }
 
     if (!requireAuth()) {
       return;
@@ -980,7 +1434,10 @@ export const AppProvider: React.FC<{
   const addAdoptionListing = (
     item: AdoptionListing
   ) => {
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     setAdoptionListings(
       (prev) => [
         item,
@@ -995,6 +1452,7 @@ export const AppProvider: React.FC<{
 
   const triggerUpcomingReminders =
     () => {
+<<<<<<< Updated upstream
 
       if (
         !currentUser?.id ||
@@ -1006,6 +1464,18 @@ export const AppProvider: React.FC<{
       const upcomingAppointment =
         appointments[0];
 
+=======
+      if (
+        !currentUser?.id ||
+        appointments.length === 0
+      ) {
+        return;
+      }
+
+      const upcomingAppointment =
+        appointments[0];
+
+>>>>>>> Stashed changes
       addToast(
         language === "bn"
           ? `⏰ রিমাইন্ডার: ${upcomingAppointment.petName} এর জন্য ${upcomingAppointment.vetName} এর সাথে অ্যাপয়েন্টমেন্ট আছে।`
@@ -1019,7 +1489,10 @@ export const AppProvider: React.FC<{
   // ==========================================
 
   useEffect(() => {
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
     if (
       !currentUser?.id ||
       appointments.length === 0
@@ -1029,15 +1502,18 @@ export const AppProvider: React.FC<{
 
     const timer =
       setTimeout(() => {
+<<<<<<< Updated upstream
 
         triggerUpcomingReminders();
 
+=======
+        triggerUpcomingReminders();
+>>>>>>> Stashed changes
       }, 2000);
 
     return () => {
       clearTimeout(timer);
     };
-
   }, [
     language,
     currentUser?.id,
@@ -1051,7 +1527,10 @@ export const AppProvider: React.FC<{
   return (
     <AppContext.Provider
       value={{
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
         // ------------------------------------
         // Language
         // ------------------------------------
@@ -1145,7 +1624,6 @@ export const AppProvider: React.FC<{
 // ============================================
 
 export const useApp = () => {
-
   const context =
     useContext(AppContext);
 
@@ -1157,4 +1635,8 @@ export const useApp = () => {
   }
 
   return context;
+<<<<<<< Updated upstream
 };
+=======
+}; 
+>>>>>>> Stashed changes

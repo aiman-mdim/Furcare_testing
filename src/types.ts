@@ -91,7 +91,12 @@ export interface Product {
   product_id: string;
   nameEn: string;
   nameBn: string;
-  category: "food" | "accessories" | "toys" | "grooming" | "healthcare";
+  category:
+    | "food"
+    | "accessories"
+    | "toys"
+    | "grooming"
+    | "healthcare";
   targetSpecies: PetSpecies | "all";
   priceTk: number;
   originalPriceTk?: number;
@@ -104,12 +109,87 @@ export interface Product {
   weightGrams?: number;
 }
 
+/* =========================================================
+   CART
+   ========================================================= */
+
+export type CartItemType =
+  | "product"
+  | "grooming_service"
+  | "hotel_booking"
+  | "premium_plan"
+  | "vet_appointment"
+  | "adoption";
+
 export interface CartItem {
+  id: string;
   product: Product;
   quantity: number;
-  type?: "product" | "grooming_service" | "hotel_booking" | "premium_plan";
+  type: CartItemType;
   customData?: Record<string, any>;
 }
+
+/* =========================================================
+   PAYMENT
+   ========================================================= */
+
+export type PaymentMethod =
+  | "cash"
+  | "visa"
+  | "mastercard"
+  | "american_express"
+  | "bkash"
+  | "none";
+
+export type PaymentStatus =
+  | "pending"
+  | "paid"
+  | "not_required";
+
+/* =========================================================
+   ORDER
+   ========================================================= */
+
+export interface OrderItem {
+  itemId: string;
+  productId: string;
+  name: string;
+  quantity: number;
+  priceTk: number;
+  type: CartItemType;
+  customData?: Record<string, any>;
+}
+
+export interface Order {
+  id: string;
+  orderId: string;
+  userId: string;
+  items: OrderItem[];
+
+  subtotal: number;
+  deliveryFee: number;
+  totalAmount: number;
+
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+
+  orderStatus:
+    | "pending"
+    | "confirmed"
+    | "processing"
+    | "completed"
+    | "cancelled";
+
+  customerEmail?: string;
+  customerPhone?: string;
+  deliveryAddress?: string;
+
+  createdAt: string;
+}
+
+/* =========================================================
+   ADOPTION
+   ========================================================= */
 
 export interface AdoptionListing {
   pet_id: string;
@@ -118,7 +198,12 @@ export interface AdoptionListing {
   species: PetSpecies;
   breed: string;
   color: string;
-  behaviour: "friendly" | "playful" | "calm" | "energetic" | "shy";
+  behaviour:
+    | "friendly"
+    | "playful"
+    | "calm"
+    | "energetic"
+    | "shy";
   ageMonths: number;
   vaccinated: boolean;
   location: string;
@@ -130,11 +215,20 @@ export interface AdoptionListing {
   postedDate: string;
 }
 
+/* =========================================================
+   GROOMING
+   ========================================================= */
+
 export interface GroomingService {
   id: string;
   nameEn: string;
   nameBn: string;
-  category: "bathing" | "nail_trimming" | "hair_cutting" | "flea_treatment" | "full_package";
+  category:
+    | "bathing"
+    | "nail_trimming"
+    | "hair_cutting"
+    | "flea_treatment"
+    | "full_package";
   priceTk: number;
   durationMins: number;
   descriptionEn: string;
@@ -143,13 +237,20 @@ export interface GroomingService {
   image: string;
 }
 
+/* =========================================================
+   PET HOTEL
+   ========================================================= */
+
 export interface PetHotel {
   id: string;
   name: string;
   location: string;
   city: string;
   dailyRateTk: number;
-  roomType: "Standard Room" | "AC Luxury Room" | "VIP Suite";
+  roomType:
+    | "Standard Room"
+    | "AC Luxury Room"
+    | "VIP Suite";
   featuresEn: string[];
   featuresBn: string[];
   rating: number;
@@ -157,6 +258,10 @@ export interface PetHotel {
   availableRooms: number;
   reviewsCount: number;
 }
+
+/* =========================================================
+   LOST & FOUND
+   ========================================================= */
 
 export interface LostAndFoundListing {
   id: string;
@@ -166,7 +271,11 @@ export interface LostAndFoundListing {
   breed: string;
   color: string;
   eyeColor: string;
-  faceStructure: "round" | "long" | "pointed" | "flat";
+  faceStructure:
+    | "round"
+    | "long"
+    | "pointed"
+    | "flat";
   collarNeckband?: string;
   birthmarkOrFeature?: string;
   lastWearCloth?: string;
@@ -178,10 +287,18 @@ export interface LostAndFoundListing {
   reportedDate: string;
 }
 
+/* =========================================================
+   PET FRIENDLY PLACES
+   ========================================================= */
+
 export interface PetFriendlyPlace {
   id: string;
   name: string;
-  type: "park" | "clinic" | "cafe" | "grooming_center";
+  type:
+    | "park"
+    | "clinic"
+    | "cafe"
+    | "grooming_center";
   address: string;
   city: string;
   lat: number;

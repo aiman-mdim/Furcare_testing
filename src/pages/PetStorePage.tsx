@@ -192,7 +192,26 @@ export const PetStorePage: React.FC = () => {
                   </div>
                 ) : (
                   <button
-                    onClick={() => addToCart(product, 1)}
+                    onClick={() => {
+  addToCart(
+    product,
+    1,
+    "product",
+    {
+      productId:
+        product.product_id,
+
+      productName:
+        product.nameEn,
+
+      category:
+        product.category,
+
+      purchaseType:
+        "pet_store",
+    }
+  );
+}}
                     className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
                   >
                     <ShoppingCart className="w-4 h-4" />
