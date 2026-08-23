@@ -372,6 +372,6 @@ const Pet: Model<IPet> =
   mongoose.model<IPet>(
     "Pet",
     PetSchema
-  );
+  ); 
 
 export default Pet; 
