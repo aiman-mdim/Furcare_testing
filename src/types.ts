@@ -306,4 +306,4 @@ export interface PetFriendlyPlace {
   rating: number;
   image: string;
   openingHours: string;
-}
+} 
