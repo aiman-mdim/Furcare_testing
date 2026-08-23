@@ -75,9 +75,7 @@ interface AppContextType {
   requireAuth: () => boolean;
 
   pendingPage: PageName | null;
-  setPendingPage: (
-    page: PageName | null
-  ) => void;
+  setPendingPage: (page: PageName | null) => void;
 
   // Pets
   pets: Pet[];
@@ -86,13 +84,9 @@ interface AppContextType {
 
   setActivePetId: (id: string) => void;
 
-<<<<<<< Updated upstream
   addPet: (
     pet: Omit<Pet, "id">
   ) => Promise<void>;
-=======
-  addPet: (pet: Omit<Pet, "id">) => Promise<void>;
->>>>>>> Stashed changes
 
   // Cart
   cart: CartItem[];
@@ -201,28 +195,6 @@ export const AppProvider: React.FC<{
   // ==========================================
   // PETS
   // ==========================================
-<<<<<<< Updated upstream
-  //
-  // IMPORTANT:
-  //
-  // Pets are stored in MongoDB.
-  //
-  // We DO NOT use:
-  //
-  // localStorage("furcare_pets...")
-  //
-  // anymore.
-  //
-  // The backend determines the owner from
-  // the authenticated session/JWT.
-  //
-  // New user:
-  //
-  // pets = []
-  //
-  // ==========================================
-=======
->>>>>>> Stashed changes
 
   const [pets, setPets] =
     useState<Pet[]>([]);
@@ -246,17 +218,6 @@ export const AppProvider: React.FC<{
             "furcare_cart"
           );
 
-<<<<<<< Updated upstream
-        return saved
-          ? JSON.parse(saved)
-          : [];
-      } catch (error) {
-        console.error(
-          "Failed to load cart:",
-          error
-        );
-
-=======
         if (!saved) {
           return [];
         }
@@ -269,13 +230,10 @@ export const AppProvider: React.FC<{
         }
 
         /*
-         * Compatibility protection:
+         * Restore old cart items safely.
          *
-         * Old cart items may not have an id.
-         * Old cart items may also not have a type.
-         *
-         * This converts old saved cart items into
-         * the new CartItem structure.
+         * Older versions of the application
+         * may not have id, type or customData.
          */
 
         return parsed.map(
@@ -287,7 +245,8 @@ export const AppProvider: React.FC<{
             product: item.product,
 
             quantity:
-              typeof item.quantity === "number"
+              typeof item.quantity === "number" &&
+              item.quantity > 0
                 ? item.quantity
                 : 1,
 
@@ -304,7 +263,6 @@ export const AppProvider: React.FC<{
           error
         );
 
->>>>>>> Stashed changes
         return [];
       }
     });
@@ -352,20 +310,6 @@ export const AppProvider: React.FC<{
 
   // ==========================================
   // REMOVE TOAST
-<<<<<<< Updated upstream
-  // ==========================================
-
-  const removeToast = (
-    id: string
-  ) => {
-    setToasts((prev) =>
-      prev.filter(
-        (toast) =>
-          toast.id !== id
-      )
-    );
-  };
-=======
   // ==========================================
 
   const removeToast = (
@@ -380,7 +324,7 @@ export const AppProvider: React.FC<{
   };
 
   // ==========================================
-  // TOAST SYSTEM
+  // ADD TOAST
   // ==========================================
 
   const addToast = (
@@ -533,7 +477,7 @@ export const AppProvider: React.FC<{
   }, [currentUser?.id]);
 
   // ==========================================
-  // SAVE CART
+  // SAVE CART TO LOCAL STORAGE
   // ==========================================
 
   useEffect(() => {
@@ -619,315 +563,18 @@ export const AppProvider: React.FC<{
     appointments,
     currentUser?.id,
   ]);
->>>>>>> Stashed changes
 
   // ==========================================
   // PAGE NAVIGATION
   // ==========================================
 
-<<<<<<< Updated upstream
-  const addToast = (
-    message: string,
-    type: ToastNotification["type"] =
-      "info"
-=======
   const setActivePage = (
     page: PageName
->>>>>>> Stashed changes
   ) => {
     // ----------------------------------------
     // PROTECTED PAGES
     // ----------------------------------------
 
-<<<<<<< Updated upstream
-    const toast: ToastNotification = {
-      id,
-      message,
-      type,
-      time:
-        new Date().toLocaleTimeString(),
-    };
-
-    setToasts((prev) => [
-      ...prev,
-      toast,
-    ]);
-
-    setTimeout(() => {
-      removeToast(id);
-    }, 5000);
-  };
-
-  // ==========================================
-  // RESTORE AUTHENTICATED SESSION
-  // ==========================================
-
-  useEffect(() => {
-    let mounted = true;
-
-    const restoreSession =
-      async () => {
-        try {
-          const result =
-            await authApi.me();
-
-          if (!mounted) {
-            return;
-          }
-
-          if (result?.user) {
-            setCurrentUser(
-              result.user
-            );
-          } else {
-            setCurrentUser(null);
-          }
-
-        } catch (error) {
-          if (!mounted) {
-            return;
-          }
-
-          console.log(
-            "No authenticated session found."
-          );
-
-          setCurrentUser(null);
-        }
-      };
-
-    restoreSession();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // ==========================================
-  // LOAD PETS FROM DATABASE
-  // ==========================================
-  //
-  // Whenever the logged-in user changes:
-  //
-  // 1. No user -> []
-  // 2. User -> GET /api/pets
-  //
-  // The backend must return only the pets
-  // belonging to the authenticated user.
-  //
-  // ==========================================
-
-  useEffect(() => {
-    let mounted = true;
-
-    const loadPets =
-      async () => {
-
-        // --------------------------------------
-        // NO USER
-        // --------------------------------------
-
-        if (!currentUser?.id) {
-
-          setPets([]);
-          setActivePetId("");
-
-          return;
-        }
-
-        // --------------------------------------
-        // USER LOGGED IN
-        // --------------------------------------
-
-        try {
-
-          const userPets =
-            await petsApi.getMyPets();
-
-          if (!mounted) {
-            return;
-          }
-
-          // ------------------------------------
-          // Store database pets in React state
-          // ------------------------------------
-
-          setPets(userPets);
-
-          // ------------------------------------
-          // Select first pet
-          // ------------------------------------
-
-          if (
-            userPets.length > 0
-          ) {
-
-            setActivePetId(
-              userPets[0].id
-            );
-
-          } else {
-
-            // ----------------------------------
-            // BRAND NEW USER
-            // ----------------------------------
-
-            setActivePetId("");
-          }
-
-        } catch (error) {
-
-          if (!mounted) {
-            return;
-          }
-
-          console.error(
-            "Failed to load pets:",
-            error
-          );
-
-          setPets([]);
-          setActivePetId("");
-
-          addToast(
-            error instanceof Error
-              ? error.message
-              : "Failed to load your pets.",
-            "warning"
-          );
-        }
-      };
-
-    loadPets();
-
-    return () => {
-      mounted = false;
-    };
-
-  }, [currentUser?.id]);
-
-  // ==========================================
-  // SAVE CART
-  // ==========================================
-
-  useEffect(() => {
-
-    try {
-
-      localStorage.setItem(
-        "furcare_cart",
-        JSON.stringify(cart)
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Failed to save cart:",
-        error
-      );
-    }
-
-  }, [cart]);
-
-  // ==========================================
-  // LOAD USER APPOINTMENTS
-  // ==========================================
-
-  useEffect(() => {
-
-    if (!currentUser?.id) {
-
-      setAppointments([]);
-
-      return;
-    }
-
-    try {
-
-      const saved =
-        localStorage.getItem(
-          `furcare_appts_${currentUser.id}`
-        );
-
-      if (saved) {
-
-        const parsed =
-          JSON.parse(saved);
-
-        if (
-          Array.isArray(parsed)
-        ) {
-
-          setAppointments(
-            parsed
-          );
-
-        } else {
-
-          setAppointments([]);
-        }
-
-      } else {
-
-        setAppointments([]);
-      }
-
-    } catch (error) {
-
-      console.error(
-        "Failed to load appointments:",
-        error
-      );
-
-      setAppointments([]);
-    }
-
-  }, [currentUser?.id]);
-
-  // ==========================================
-  // SAVE USER APPOINTMENTS
-  // ==========================================
-
-  useEffect(() => {
-
-    if (!currentUser?.id) {
-      return;
-    }
-
-    try {
-
-      localStorage.setItem(
-        `furcare_appts_${currentUser.id}`,
-        JSON.stringify(
-          appointments
-        )
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Failed to save appointments:",
-        error
-      );
-    }
-
-  }, [
-    appointments,
-    currentUser?.id,
-  ]);
-
-  // ==========================================
-  // PAGE NAVIGATION
-  // ==========================================
-
-  const setActivePage = (
-    page: PageName
-  ) => {
-
-    // Protected pages
-
-=======
->>>>>>> Stashed changes
     if (
       !currentUser?.id &&
       (
@@ -935,7 +582,6 @@ export const AppProvider: React.FC<{
         page === "dashboard"
       )
     ) {
-
       setPendingPage(page);
 
       addToast(
@@ -958,7 +604,6 @@ export const AppProvider: React.FC<{
   // ==========================================
 
   const requireAuth = () => {
-
     if (currentUser?.id) {
       return true;
     }
@@ -978,26 +623,10 @@ export const AppProvider: React.FC<{
   // ==========================================
   // ADD PET
   // ==========================================
-  //
-  // IMPORTANT:
-  //
-  // Age and vaccination history are included
-  // in petData and sent directly to MongoDB.
-  //
-  // The frontend DOES NOT assign owner_id.
-  //
-  // The backend must determine owner_id from
-  // the authenticated user/session.
-  //
-  // ==========================================
 
   const addPet = async (
     petData: Omit<Pet, "id">
   ): Promise<void> => {
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
     // ----------------------------------------
     // CHECK AUTHENTICATION
     // ----------------------------------------
@@ -1007,61 +636,6 @@ export const AppProvider: React.FC<{
     }
 
     try {
-<<<<<<< Updated upstream
-
-      // --------------------------------------
-      // NEVER trust owner_id from frontend
-      // --------------------------------------
-
-      const {
-        owner_id: _ownerId,
-        ...petPayload
-      } = petData;
-
-      // --------------------------------------
-      // CREATE PET IN MONGODB
-      //
-      // petPayload contains:
-      //
-      // name
-      // species
-      // breed
-      // ageYears
-      // ageMonths
-      // color
-      // weightKg
-      // gender
-      // photoUrl
-      // allergies
-      // vaccinations
-      // medicalHistory
-      // microchipId
-      //
-      // --------------------------------------
-
-      const newPet =
-        await petsApi.createPet(
-          petPayload
-        );
-
-      // --------------------------------------
-      // UPDATE DASHBOARD IMMEDIATELY
-      // --------------------------------------
-
-      setPets((prev) => [
-        newPet,
-        ...prev,
-      ]);
-
-      // --------------------------------------
-      // SELECT NEW PET
-      // --------------------------------------
-
-      setActivePetId(
-        newPet.id
-      );
-
-=======
       // --------------------------------------
       // NEVER TRUST owner_id FROM FRONTEND
       // --------------------------------------
@@ -1069,7 +643,12 @@ export const AppProvider: React.FC<{
       const {
         owner_id: _ownerId,
         ...petPayload
-      } = petData;
+      } = petData as Omit<
+        Pet,
+        "id"
+      > & {
+        owner_id?: string;
+      };
 
       // --------------------------------------
       // CREATE PET IN MONGODB
@@ -1097,7 +676,6 @@ export const AppProvider: React.FC<{
         newPet.id
       );
 
->>>>>>> Stashed changes
       // --------------------------------------
       // SUCCESS MESSAGE
       // --------------------------------------
@@ -1106,13 +684,7 @@ export const AppProvider: React.FC<{
         `Registered new pet: ${newPet.name}!`,
         "success"
       );
-<<<<<<< Updated upstream
-
     } catch (error) {
-
-=======
-    } catch (error) {
->>>>>>> Stashed changes
       console.error(
         "Failed to register pet:",
         error
@@ -1124,6 +696,14 @@ export const AppProvider: React.FC<{
           : "Failed to register pet. Please try again.",
         "warning"
       );
+
+      /*
+       * Important:
+       *
+       * Re-throw the error so the page
+       * knows that creation failed.
+       */
+      throw error;
     }
   };
 
@@ -1134,21 +714,27 @@ export const AppProvider: React.FC<{
   const addToCart = (
     product: Product,
     quantity: number = 1,
-<<<<<<< Updated upstream
-    type: CartItem["type"] =
-      "product",
-    customData?: Record<string, any>
-  ): boolean => {
-=======
     type: CartItemType = "product",
     customData?: Record<string, any>
   ): boolean => {
     // ----------------------------------------
     // CHECK AUTHENTICATION
     // ----------------------------------------
->>>>>>> Stashed changes
 
     if (!requireAuth()) {
+      return false;
+    }
+
+    // ----------------------------------------
+    // VALIDATE PRODUCT
+    // ----------------------------------------
+
+    if (!product?.product_id) {
+      addToast(
+        "Invalid product.",
+        "warning"
+      );
+
       return false;
     }
 
@@ -1169,64 +755,47 @@ export const AppProvider: React.FC<{
     }
 
     // ----------------------------------------
-    // CREATE UNIQUE ID
+    // ADD / MERGE CART ITEM
     // ----------------------------------------
-
-    const newItemId =
-      `${type}-${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
 
     setCart((prev) => {
       /*
-       * IMPORTANT:
+       * IMPORTANT
        *
-       * Only normal products are allowed
-       * to merge with an existing cart item.
+       * Only normal store products are merged.
        *
-       * Vet appointments, adoption, grooming,
-       * hotel and premium items should remain
-       * separate cart entries.
+       * These remain separate:
+       *
+       * - premium_plan
+       * - vet appointment
+       * - grooming
+       * - hotel
+       * - adoption
+       * - other service types
        */
 
       const existingIndex =
         type === "product"
           ? prev.findIndex(
               (item) =>
-                item.product.product_id ===
-                  product.product_id &&
-                item.type === type
+                item.type ===
+                  "product" &&
+                item.product
+                  .product_id ===
+                  product.product_id
             )
           : -1;
 
-<<<<<<< Updated upstream
-      if (
-        existingIndex > -1
-      ) {
-
-        const updated = [
-          ...prev,
-        ];
-
-        updated[
-          existingIndex
-        ] = {
-
-          ...updated[
-            existingIndex
-          ],
-=======
       // --------------------------------------
       // EXISTING NORMAL PRODUCT
       // --------------------------------------
 
       if (
-        existingIndex > -1
+        existingIndex >= 0
       ) {
         const updated = [
           ...prev,
         ];
->>>>>>> Stashed changes
 
         updated[
           existingIndex
@@ -1234,6 +803,7 @@ export const AppProvider: React.FC<{
           ...updated[
             existingIndex
           ],
+
           quantity:
             updated[
               existingIndex
@@ -1249,10 +819,17 @@ export const AppProvider: React.FC<{
       // --------------------------------------
 
       const newItem: CartItem = {
-        id: newItemId,
+        id:
+          `${type}-${product.product_id}-${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2, 7)}`,
+
         product,
+
         quantity,
+
         type,
+
         customData:
           customData || {},
       };
@@ -1294,10 +871,6 @@ export const AppProvider: React.FC<{
     // ----------------------------------------
 
     if (quantity <= 0) {
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
       removeFromCart(
         productId
       );
@@ -1311,8 +884,9 @@ export const AppProvider: React.FC<{
 
     setCart((prev) =>
       prev.map((item) =>
-        item.product.product_id ===
-        productId
+        item.product
+          .product_id ===
+          productId
           ? {
               ...item,
               quantity,
@@ -1336,7 +910,8 @@ export const AppProvider: React.FC<{
     setCart((prev) =>
       prev.filter(
         (item) =>
-          item.product.product_id !==
+          item.product
+            .product_id !==
           productId
       )
     );
@@ -1354,7 +929,6 @@ export const AppProvider: React.FC<{
   // ==========================================
 
   const clearCart = () => {
-
     if (!requireAuth()) {
       return;
     }
@@ -1408,10 +982,6 @@ export const AppProvider: React.FC<{
       return;
     }
 
-    if (!requireAuth()) {
-      return;
-    }
-
     setAppointments((prev) =>
       prev.filter(
         (appointment) =>
@@ -1434,10 +1004,6 @@ export const AppProvider: React.FC<{
   const addAdoptionListing = (
     item: AdoptionListing
   ) => {
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
     setAdoptionListings(
       (prev) => [
         item,
@@ -1452,8 +1018,6 @@ export const AppProvider: React.FC<{
 
   const triggerUpcomingReminders =
     () => {
-<<<<<<< Updated upstream
-
       if (
         !currentUser?.id ||
         appointments.length === 0
@@ -1464,18 +1028,6 @@ export const AppProvider: React.FC<{
       const upcomingAppointment =
         appointments[0];
 
-=======
-      if (
-        !currentUser?.id ||
-        appointments.length === 0
-      ) {
-        return;
-      }
-
-      const upcomingAppointment =
-        appointments[0];
-
->>>>>>> Stashed changes
       addToast(
         language === "bn"
           ? `⏰ রিমাইন্ডার: ${upcomingAppointment.petName} এর জন্য ${upcomingAppointment.vetName} এর সাথে অ্যাপয়েন্টমেন্ট আছে।`
@@ -1489,10 +1041,6 @@ export const AppProvider: React.FC<{
   // ==========================================
 
   useEffect(() => {
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
     if (
       !currentUser?.id ||
       appointments.length === 0
@@ -1502,13 +1050,7 @@ export const AppProvider: React.FC<{
 
     const timer =
       setTimeout(() => {
-<<<<<<< Updated upstream
-
         triggerUpcomingReminders();
-
-=======
-        triggerUpcomingReminders();
->>>>>>> Stashed changes
       }, 2000);
 
     return () => {
@@ -1527,10 +1069,6 @@ export const AppProvider: React.FC<{
   return (
     <AppContext.Provider
       value={{
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
         // ------------------------------------
         // Language
         // ------------------------------------
@@ -1628,15 +1166,10 @@ export const useApp = () => {
     useContext(AppContext);
 
   if (!context) {
-
     throw new Error(
       "useApp must be used within an AppProvider"
     );
   }
 
   return context;
-<<<<<<< Updated upstream
-};
-=======
 }; 
->>>>>>> Stashed changes
