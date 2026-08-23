@@ -1,340 +1,230 @@
-import React from "react";
+import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
+import { getTranslation } from "../translations/i18n";
+import { mockProducts } from "../data/mockData";
 import { Product } from "../types";
 import {
-  Compass,
-  Zap,
-  PhoneCall,
-  HeartHandshake,
+  Store,
+  Search,
+  ShoppingCart,
+  Plus,
+  Minus,
+  Trash2,
+  Star,
   Check,
-  ArrowRight,
+  Filter,
 } from "lucide-react";
 
-export const PremiumFeaturesPage: React.FC = () => {
-  const {
-    language,
-    addToCart,
-    setActivePage,
-    addToast,
-    requireAuth,
-  } = useApp();
+export const PetStorePage: React.FC = () => {
+  const { language, cart, addToCart, updateCartQty, removeFromCart, setActivePage } = useApp();
 
-  // ============================================
-  // CONTINUE TO CART
-  // ============================================
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedSpecies, setSelectedSpecies] = useState<string>("all");
 
-  const handleContinueToCart = () => {
-    // ------------------------------------------
-    // Authentication check
-    // ------------------------------------------
+  const filteredProducts = mockProducts.filter((product) => {
+    const matchesSearch =
+      product.nameEn.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.nameBn.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || product.category === selectedCategory;
+    const matchesSpecies = selectedSpecies === "all" || product.targetSpecies === "all" || product.targetSpecies === selectedSpecies;
+    return matchesSearch && matchesCategory && matchesSpecies;
+  });
 
-    if (!requireAuth()) {
-      return;
-    }
-
-    // ------------------------------------------
-    // Premium membership product
-    // ------------------------------------------
-
-    const premiumProduct: Product = {
-      product_id: "PRM-500",
-
-      nameEn:
-        "FurCare VIP Extra Premium Membership (1 Month)",
-
-      nameBn:
-        "FurCare ভিআইপি এক্সট্রা প্রিমিয়াম মেম্বারশিপ (১ মাস)",
-
-      category: "healthcare",
-
-      targetSpecies: "all",
-
-      priceTk: 500,
-
-      rating: 5,
-
-      reviewsCount: 320,
-
-      image:
-        "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=800&q=80",
-
-      descriptionEn:
-        "Includes Pet Walking, 24/7 Emergency Ambulance, Genetic Breed Matching, and Full Pet-Friendly Places Map access.",
-
-      descriptionBn:
-        "পেট ওয়াকিং, ২৪/৭ জরুরি অ্যাম্বুলেন্স, জিনেটিক ব্রিড ম্যাচিং এবং ইন্টারেক্টিভ ম্যাপ সুবিধা।",
-
-      stock: 999,
-    };
-
-    // ------------------------------------------
-    // Add premium plan to cart
-    // ------------------------------------------
-
-    const added = addToCart(
-      premiumProduct,
-      1,
-      "premium_plan",
-      {
-        planId: "PRM-500",
-
-        planName: "VIP Extra Premium",
-
-        duration: "1 month",
-
-        priceTk: 500,
-
-        membershipStatus: "pending",
-      }
-    );
-
-    // ------------------------------------------
-    // If cart operation failed
-    // ------------------------------------------
-
-    if (!added) {
-      return;
-    }
-
-    // ------------------------------------------
-    // Success notification
-    // ------------------------------------------
-
-    addToast(
-      language === "bn"
-        ? "প্রিমিয়াম প্ল্যান Cart-এ যোগ হয়েছে।"
-        : "Premium membership added to cart. Complete payment to activate.",
-      "success"
-    );
-
-    // ------------------------------------------
-    // Go to cart
-    // ------------------------------------------
-
-    setActivePage("cart");
+  const getCartQuantity = (productId: string) => {
+    const item = cart.find((i) => i.product.product_id === productId);
+    return item ? item.quantity : 0;
   };
 
-  // ============================================
-  // PREMIUM SERVICES
-  // ============================================
-
-  const services = [
-    {
-      id: "map",
-
-      title: "Pet-Friendly Spots Map",
-
-      description:
-        "Interactive map to discover parks, pet-friendly cafes, clinics, and grooming spots in Dhaka, Chattogram & Sylhet with turn-by-turn navigation.",
-
-      image:
-        "https://images.unsplash.com/photo-1534361960057-19889db9621e?auto=format&fit=crop&w=800&q=80",
-
-      icon: (
-        <Compass className="w-5 h-5 text-[#dfba61]" />
-      ),
-
-      tag: "GPS Live Map",
-    },
-
-    {
-      id: "walking",
-
-      title: "Pet Walking Service",
-
-      description:
-        "Background-checked professional pet walkers for daily exercise, leash training, and outdoor happiness with real-time route updates.",
-
-      image:
-        "https://images.unsplash.com/photo-1519331379826-f10be5486c6f?auto=format&fit=crop&w=800&q=80",
-
-      icon: (
-        <Zap className="w-5 h-5 text-[#dfba61]" />
-      ),
-
-      tag: "On-Demand Walk",
-    },
-
-    {
-      id: "emergency",
-
-      title: "24/7 Emergency Vet",
-
-      description:
-        "Instant hotline access to senior veterinary surgeons in Bangladesh, plus oxygen-equipped ambulance dispatch for critical pet care.",
-
-      image:
-        "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=800&q=80",
-
-      icon: (
-        <PhoneCall className="w-5 h-5 text-[#dfba61]" />
-      ),
-
-      tag: "24/7 Ambulance",
-    },
-
-    {
-      id: "breed",
-
-      title: "Breed Matchmaker",
-
-      description:
-        "Connect with verified pedigree pet owners for breeding, health compatibility analysis, and genetic disease screening.",
-
-      image:
-        "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?auto=format&fit=crop&w=800&q=80",
-
-      icon: (
-        <HeartHandshake className="w-5 h-5 text-[#dfba61]" />
-      ),
-
-      tag: "Genetic Match",
-    },
-  ];
-
-  // ============================================
-  // PAGE
-  // ============================================
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#132c38] via-[#0f212c] to-[#0a151d] text-slate-100 py-12 px-4 sm:px-6 lg:px-8 space-y-12 relative overflow-hidden font-sans">
-
-      {/* ====================================== */}
-      {/* BACKGROUND AMBIENT GLOWS */}
-      {/* ====================================== */}
-
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#d4af37]/15 blur-[130px] pointer-events-none rounded-full" />
-
-      <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-emerald-500/10 blur-[150px] pointer-events-none rounded-full" />
-
-      {/* ====================================== */}
-      {/* HERO HEADER */}
-      {/* ====================================== */}
-
-      <div className="max-w-3xl mx-auto text-center space-y-3 relative z-10">
-
-        <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight text-transparent bg-clip-text bg-gradient-to-r from-[#fef0cd] via-[#e5c158] to-[#cba33d] drop-shadow-sm">
-          Care that goes the extra mile.
+    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8 space-y-10">
+      
+      {/* Title */}
+      <div className="max-w-4xl mx-auto text-center space-y-2">
+        <span className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-extrabold uppercase rounded-full">
+          Pet Supermarket BD
+        </span>
+        <h1 className="text-3xl sm:text-4xl font-black text-slate-900 font-display">
+          {getTranslation(language, "storeTitle")}
         </h1>
-
-        <p className="text-sm sm:text-base text-slate-300 font-medium">
-          Unlock our pet service designed for the pet parents who want the very best for their pets
+        <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
+          {language === "bn"
+            ? "রয়েল ক্যানিন, রিফ্লেক্স, অক্সবো ও অন্যান্য বিশ্বমানের পেট ব্র্যান্ডের খাবার ও অ্যাক্সেসরিজ অনলাইনে অর্ডার করুন।"
+            : "Order authentic pet food, toys, grooming tools, and accessories. Fast home delivery across Bangladesh."}
         </p>
-
-        <p className="text-xs font-bold text-[#e5c158] pt-1">
-          Less than Tk 17/day
-        </p>
-
       </div>
 
-      {/* ====================================== */}
-      {/* PRICING BADGE */}
-      {/* ====================================== */}
+      {/* Supermarket Search & Filter Header Bar */}
+      <div className="max-w-6xl mx-auto bg-white p-4 rounded-3xl shadow-md border border-slate-200 space-y-4" id="store-supermarket-bar">
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2.5 flex items-center gap-2 w-full">
+            <Search className="w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search food, salmon, harness, toys, hay..."
+              className="w-full text-xs text-slate-800 bg-transparent focus:outline-none"
+            />
+          </div>
 
-      <div className="flex items-center justify-center gap-2 relative z-10">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <select
+              value={selectedSpecies}
+              onChange={(e) => setSelectedSpecies(e.target.value)}
+              className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-700"
+            >
+              <option value="all">All Species</option>
+              <option value="dog">Dogs (কুকুর)</option>
+              <option value="cat">Cats (বিড়াল)</option>
+              <option value="rabbit">Rabbits (খরগোশ)</option>
+            </select>
 
-        <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs shadow-sm">
-          <Check className="w-3.5 h-3.5 stroke-[3]" />
+            <button
+              onClick={() => setActivePage("cart")}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-2xl shadow-xs transition-all flex items-center gap-1.5 shrink-0"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span>Cart ({cart.reduce((a, b) => a + b.quantity, 0)})</span>
+            </button>
+          </div>
+
         </div>
 
-        <span className="px-4 py-1.5 bg-gradient-to-r from-[#dfba61] via-[#c6a043] to-[#b88e2c] text-slate-950 font-black text-xs rounded-md shadow-[0_4px_14px_rgba(15,82,72,0.35)] border border-[#f3e1b6]/40">
-          Tk 500/ Month
-        </span>
-
+        {/* Category Selector Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-t border-slate-100 pt-3">
+          {[
+            { id: "all", key: "allProducts" },
+            { id: "food", key: "foodCategory" },
+            { id: "accessories", key: "accessoriesCategory" },
+            { id: "toys", key: "toysCategory" },
+            { id: "grooming", key: "groomingCategory" },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                selectedCategory === cat.id
+                  ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                  : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              {getTranslation(language, cat.key as any)}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* ====================================== */}
-      {/* PREMIUM SERVICES */}
-      {/* ====================================== */}
+      {/* Product Supermarket Grid */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProducts.map((product) => {
+          const qtyInCart = getCartQuantity(product.product_id);
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
-
-        {services.map((service) => (
-
-          <div
-            key={service.id}
-            className="bg-[#1c3a32]/90 border border-[#cba33d]/30 rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.3)] hover:border-[#dfba61]/60 transition-all flex flex-col justify-between"
-          >
-
-            {/* ================================= */}
-            {/* SERVICE IMAGE */}
-            {/* ================================= */}
-
-            <div className="h-44 bg-slate-800 relative overflow-hidden">
-
-              <img
-                src={service.image}
-                alt={service.title}
-                className="w-full h-full object-cover"
-              />
-
-              <span className="absolute top-2 right-2 px-2.5 py-1 bg-slate-950/80 backdrop-blur-xs text-amber-200 text-[10px] font-bold rounded-md border border-[#cba33d]/30">
-                {service.tag}
-              </span>
-
-            </div>
-
-            {/* ================================= */}
-            {/* SERVICE DETAILS */}
-            {/* ================================= */}
-
-            <div className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-
-              <div className="space-y-2">
-
-                {/* Icon */}
-
-                <div className="w-10 h-10 rounded-xl bg-[#0f212c] border border-[#cba33d]/40 flex items-center justify-center shadow-inner">
-                  {service.icon}
+          return (
+            <div
+              key={product.product_id}
+              className="bg-white rounded-3xl p-5 shadow-md border border-slate-200 hover:shadow-xl transition-all flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-3">
+                
+                {/* Image & Price Tag */}
+                <div className="relative rounded-2xl overflow-hidden h-48 bg-slate-100">
+                  <img
+                    src={product.image}
+                    alt={product.nameEn}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                  {product.originalPriceTk && (
+                    <span className="absolute top-3 left-3 px-2 py-0.5 bg-rose-500 text-white text-[10px] font-extrabold rounded-md shadow-xs">
+                      SAVE ৳{product.originalPriceTk - product.priceTk}
+                    </span>
+                  )}
+                  <span className="absolute bottom-3 right-3 px-2.5 py-1 bg-slate-900/80 text-white backdrop-blur-md rounded-lg text-xs font-black">
+                    ৳{product.priceTk}
+                  </span>
                 </div>
 
-                {/* Title */}
+                {/* Rating & Stock */}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="flex items-center gap-1 font-bold text-amber-500">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span>{product.rating} ({product.reviewsCount})</span>
+                  </span>
+                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-md text-[10px]">
+                    {getTranslation(language, "inStock")} ({product.stock})
+                  </span>
+                </div>
 
-                <h3 className="font-extrabold text-slate-100 text-base leading-snug">
-                  {service.title}
-                </h3>
-
-                {/* Description */}
-
-                <p className="text-xs text-emerald-100/70 leading-relaxed font-medium">
-                  {service.description}
-                </p>
+                {/* Product Name & Description */}
+                <div>
+                  <h3 className="font-bold text-slate-900 text-sm font-display leading-snug line-clamp-2">
+                    {language === "bn" ? product.nameBn : product.nameEn}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                    {language === "bn" ? product.descriptionBn : product.descriptionEn}
+                  </p>
+                </div>
 
               </div>
 
+              {/* Quantity Increase / Decrease / Add to Cart Controls */}
+              <div className="pt-2 border-t border-slate-100">
+                {qtyInCart > 0 ? (
+                  <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                    <button
+                      onClick={() => updateCartQty(product.product_id, qtyInCart - 1)}
+                      className="w-8 h-8 rounded-xl bg-white text-slate-800 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center font-bold shadow-xs"
+                    >
+                      {qtyInCart === 1 ? <Trash2 className="w-4 h-4" /> : <Minus className="w-4 h-4" />}
+                    </button>
+
+                    <span className="font-black text-slate-900 text-xs">
+                      {qtyInCart} in Cart
+                    </span>
+
+                    <button
+                      onClick={() => updateCartQty(product.product_id, qtyInCart + 1)}
+                      className="w-8 h-8 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 flex items-center justify-center font-bold shadow-xs"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+  addToCart(
+    product,
+    1,
+    "product",
+    {
+      productId:
+        product.product_id,
+
+      productName:
+        product.nameEn,
+
+      category:
+        product.category,
+
+      purchaseType:
+        "pet_store",
+    }
+  );
+}}
+                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
+                  >
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>{getTranslation(language, "addToCartBtn")}</span>
+                  </button>
+                )}
+              </div>
+
             </div>
-
-          </div>
-
-        ))}
-
+          );
+        })}
       </div>
 
-      {/* ====================================== */}
-      {/* CTA */}
-      {/* ====================================== */}
-
-      <div className="text-center space-y-2 pt-2 pb-8 relative z-10">
-
-        <button
-          onClick={handleContinueToCart}
-          className="px-8 py-3.5 bg-gradient-to-r from-[#dfba61] via-[#c6a043] to-[#b88e2c] hover:from-[#ebc66f] hover:to-[#cfa339] text-slate-950 font-black text-sm rounded-xl shadow-[0_8px_20px_rgba(19,44,56,0.35)] hover:shadow-[0_10px_25px_rgba(15,82,72,0.45)] transition-all transform hover:-translate-y-0.5 cursor-pointer inline-flex items-center gap-2 border border-[#f3e1b6]/40"
-        >
-
-          <span>
-            Continue — Tk 500
-          </span>
-
-          <ArrowRight className="w-4 h-4" />
-
-        </button>
-
-        <p className="text-xs text-slate-400 font-medium">
-          Cancel Anytime
-        </p>
-
-      </div>
-
-    </div>
+  </div>
   );
 };
