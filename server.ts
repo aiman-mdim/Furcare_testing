@@ -8,6 +8,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import orderRoutes from "./server/routes/orders";
 
 dotenv.config();
 
@@ -24,6 +25,8 @@ app.use("/api/auth", authRoutes);
 
 // Pet routes
 app.use("/api/pets", petRoutes);
+
+app.use("/api/orders", orderRoutes);
 
 // ============================================
 // GEMINI AI CLIENT
