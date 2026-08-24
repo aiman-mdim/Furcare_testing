@@ -36,17 +36,11 @@ app.use("/api/auth", authRoutes);
 
 app.use("/api/pets", petRoutes);
 
-<<<<<<< HEAD
-// ======================================================
-// GEMINI CLIENT
-// ======================================================
-=======
 app.use("/api/orders", orderRoutes);
 
 // ============================================
 // GEMINI AI CLIENT
 // ============================================
->>>>>>> origin/main
 
 let aiClient: GoogleGenAI | null = null;
 

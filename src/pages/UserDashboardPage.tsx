@@ -3,11 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useApp } from "../context/AppContext";
 
 import {
-  Pet,
-  PetSpecies,
-  VaccineRecord,
-} from "../types";
-
   PetSpecies,
   VaccineRecord,
   Order,
@@ -39,7 +34,8 @@ export const UserDashboardPage: React.FC = () => {
   // ==========================================
 
   const [orders, setOrders] = useState<Order[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] =
+    useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -146,12 +142,9 @@ export const UserDashboardPage: React.FC = () => {
     }
 
     const newVaccination: VaccineRecord = {
-      id:
-        "VAC-" +
-        Date.now().toString(),
+      id: "VAC-" + Date.now().toString(),
 
-      vaccineName:
-        vaccineName.trim(),
+      vaccineName: vaccineName.trim(),
 
       givenDate,
 
@@ -160,11 +153,9 @@ export const UserDashboardPage: React.FC = () => {
       status: "completed",
 
       batchNumber:
-        batchNumber.trim() ||
-        undefined,
+        batchNumber.trim() || undefined,
 
-      veterinarian:
-        veterinarian.trim(),
+      veterinarian: veterinarian.trim(),
 
       postVaccineTipsEn: [],
 
@@ -177,15 +168,10 @@ export const UserDashboardPage: React.FC = () => {
     ]);
 
     // Clear vaccination inputs
-
     setVaccineName("");
-
     setGivenDate("");
-
     setNextDueDate("");
-
     setVeterinarian("");
-
     setBatchNumber("");
   };
 
@@ -338,16 +324,18 @@ export const UserDashboardPage: React.FC = () => {
       await addPet(petData);
 
       // Close modal
-
       setIsAddPetModalOpen(false);
 
       // Clear form
-
       resetPetForm();
     } catch (error) {
       console.error(
         "Failed to add pet:",
         error
+      );
+
+      alert(
+        "Failed to add pet. Please try again."
       );
     }
   };
@@ -380,7 +368,9 @@ export const UserDashboardPage: React.FC = () => {
           <div className="w-16 h-16 rounded-2xl bg-emerald-500 flex items-center justify-center font-black text-slate-950 text-2xl">
 
             {currentUser
-              ? currentUser.name.charAt(0).toUpperCase()
+              ? currentUser.name
+                  .charAt(0)
+                  .toUpperCase()
               : "U"}
 
           </div>
@@ -930,7 +920,10 @@ export const UserDashboardPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  setIsAddPetModalOpen(false);
+                  setIsAddPetModalOpen(
+                    false
+                  );
+
                   resetPetForm();
                 }}
                 className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl"
@@ -1507,4 +1500,4 @@ export const UserDashboardPage: React.FC = () => {
 
     </div>
   );
-}; 
+};
