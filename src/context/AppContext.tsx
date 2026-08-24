@@ -21,6 +21,7 @@ import {
 } from "../data/mockData";
 
 import { authApi } from "../services/auth";
+import { petsApi } from "../services/pets";
 
 // ============================================
 // PAGE TYPES
@@ -46,7 +47,11 @@ export type PageName =
 
 interface ToastNotification {
   id: string;
-  type: "success" | "info" | "warning" | "reminder";
+  type:
+    | "success"
+    | "info"
+    | "warning"
+    | "reminder";
   message: string;
   time?: string;
 }
@@ -64,44 +69,86 @@ interface AppContextType {
 
   currentUser: User | null;
   setCurrentUser: (user: User | null) => void;
+
   requireAuth: () => boolean;
+
   pendingPage: PageName | null;
-  setPendingPage: (page: PageName | null) => void;
+  setPendingPage: (
+    page: PageName | null
+  ) => void;
 
+  // Pets
   pets: Pet[];
-  activePetId: string;
-  setActivePetId: (id: string) => void;
-  addPet: (pet: Omit<Pet, "id">) => void;
 
+  activePetId: string;
+
+  setActivePetId: (id: string) => void;
+
+  addPet: (
+    pet: Omit<Pet, "id">
+  ) => Promise<void>;
+
+  // Cart
   cart: CartItem[];
+
   addToCart: (
     product: Product,
     quantity?: number,
     type?: CartItem["type"],
     customData?: Record<string, any>
   ) => boolean;
-  updateCartQty: (productId: string, quantity: number) => void;
-  removeFromCart: (productId: string) => void;
+
+  updateCartQty: (
+    productId: string,
+    quantity: number
+  ) => void;
+
+  removeFromCart: (
+    productId: string
+  ) => void;
+
   clearCart: () => void;
 
+  // Appointments
   appointments: Appointment[];
-  addAppointment: (appt: Omit<Appointment, "id">) => void;
-  cancelAppointment: (id: string) => void;
 
+  addAppointment: (
+    appt: Omit<Appointment, "id">
+  ) => void;
+
+  cancelAppointment: (
+    id: string
+  ) => void;
+
+  // AI
   isAiModalOpen: boolean;
-  setIsAiModalOpen: (open: boolean) => void;
 
+  setIsAiModalOpen: (
+    open: boolean
+  ) => void;
+
+  // Toasts
   toasts: ToastNotification[];
+
   addToast: (
     message: string,
     type?: ToastNotification["type"]
   ) => void;
-  removeToast: (id: string) => void;
 
+  removeToast: (
+    id: string
+  ) => void;
+
+  // Adoption
   adoptionListings: AdoptionListing[];
-  addAdoptionListing: (item: AdoptionListing) => void;
 
+  addAdoptionListing: (
+    item: AdoptionListing
+  ) => void;
+
+  // Time
   simulatedTime: string;
+
   triggerUpcomingReminders: () => void;
 }
 
@@ -109,9 +156,10 @@ interface AppContextType {
 // CONTEXT
 // ============================================
 
-const AppContext = createContext<
-  AppContextType | undefined
->(undefined);
+const AppContext =
+  createContext<AppContextType | undefined>(
+    undefined
+  );
 
 // ============================================
 // APP PROVIDER
@@ -151,25 +199,28 @@ export const AppProvider: React.FC<{
   //
   // IMPORTANT:
   //
-  // Pets are stored separately for every user.
+  // Pets are stored in MongoDB.
   //
-  // Example:
+  // We DO NOT use:
   //
-  // furcare_pets_USER_101
-  // furcare_pets_USER_202
+  // localStorage("furcare_pets...")
   //
-  // A new user gets [].
+  // anymore.
   //
-  // There are NO demo pets here.
+  // The backend determines the owner from
+  // the authenticated session/JWT.
+  //
+  // New user:
+  //
+  // pets = []
+  //
   // ==========================================
 
-  const [pets, setPets] = useState<Pet[]>([]);
+  const [pets, setPets] =
+    useState<Pet[]>([]);
 
   // ==========================================
   // ACTIVE PET
-  // ==========================================
-  //
-  // New users have no active pet.
   // ==========================================
 
   const [activePetId, setActivePetId] =
@@ -179,30 +230,29 @@ export const AppProvider: React.FC<{
   // CART
   // ==========================================
 
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    try {
-      const saved =
-        localStorage.getItem("furcare_cart");
+  const [cart, setCart] =
+    useState<CartItem[]>(() => {
+      try {
+        const saved =
+          localStorage.getItem(
+            "furcare_cart"
+          );
 
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error(
-        "Failed to load cart from localStorage:",
-        error
-      );
+        return saved
+          ? JSON.parse(saved)
+          : [];
+      } catch (error) {
+        console.error(
+          "Failed to load cart:",
+          error
+        );
 
-      return [];
-    }
-  });
+        return [];
+      }
+    });
 
   // ==========================================
   // APPOINTMENTS
-  // ==========================================
-  //
-  // IMPORTANT:
-  //
-  // No default/demo appointment.
-  // Each user gets their own appointment list.
   // ==========================================
 
   const [appointments, setAppointments] =
@@ -212,25 +262,28 @@ export const AppProvider: React.FC<{
   // ADOPTION LISTINGS
   // ==========================================
 
-  const [adoptionListings, setAdoptionListings] =
-    useState<AdoptionListing[]>(
-      mockAdoptionListings
-    );
+  const [
+    adoptionListings,
+    setAdoptionListings,
+  ] = useState<AdoptionListing[]>(
+    mockAdoptionListings
+  );
 
   // ==========================================
   // AI MODAL
   // ==========================================
 
-  const [isAiModalOpen, setIsAiModalOpen] =
-    useState<boolean>(false);
+  const [
+    isAiModalOpen,
+    setIsAiModalOpen,
+  ] = useState<boolean>(false);
 
   // ==========================================
   // TOASTS
   // ==========================================
 
-  const [toasts, setToasts] = useState<
-    ToastNotification[]
-  >([]);
+  const [toasts, setToasts] =
+    useState<ToastNotification[]>([]);
 
   // ==========================================
   // SIMULATED TIME
@@ -240,265 +293,19 @@ export const AppProvider: React.FC<{
     useState<string>("15:00");
 
   // ==========================================
-  // RESTORE AUTHENTICATED SESSION
+  // REMOVE TOAST
   // ==========================================
 
-  useEffect(() => {
-    let mounted = true;
-
-    const restoreSession = async () => {
-      try {
-        const result = await authApi.me();
-
-        if (!mounted) {
-          return;
-        }
-
-        if (result?.user) {
-          setCurrentUser(result.user);
-        } else {
-          setCurrentUser(null);
-        }
-      } catch (error) {
-        if (!mounted) {
-          return;
-        }
-
-        console.log(
-          "No authenticated session found."
-        );
-
-        setCurrentUser(null);
-      }
-    };
-
-    restoreSession();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // ==========================================
-  // LOAD USER-SPECIFIC DATA
-  // ==========================================
-  //
-  // This runs whenever the logged-in user changes.
-  //
-  // VERY IMPORTANT:
-  //
-  // User A:
-  // furcare_pets_A
-  //
-  // User B:
-  // furcare_pets_B
-  //
-  // They never share pet data.
-  // ==========================================
-
-  useEffect(() => {
-    if (!currentUser?.id) {
-      // No logged-in user.
-      setPets([]);
-      setAppointments([]);
-      setActivePetId("");
-
-      return;
-    }
-
-    const userId = String(currentUser.id);
-
-    const petsKey =
-      `furcare_pets_${userId}`;
-
-    const appointmentsKey =
-      `furcare_appts_${userId}`;
-
-    const activePetKey =
-      `furcare_active_pet_${userId}`;
-
-    // ========================================
-    // LOAD PETS
-    // ========================================
-
-    try {
-      const savedPets =
-        localStorage.getItem(petsKey);
-
-      if (savedPets) {
-        const parsedPets =
-          JSON.parse(savedPets);
-
-        if (Array.isArray(parsedPets)) {
-          setPets(parsedPets);
-
-          // Restore active pet only if it
-          // actually belongs to this user.
-
-          const savedActivePet =
-            localStorage.getItem(activePetKey);
-
-          const activePetExists =
-            savedActivePet &&
-            parsedPets.some(
-              (pet: Pet) =>
-                pet.id === savedActivePet
-            );
-
-          if (activePetExists) {
-            setActivePetId(savedActivePet);
-          } else if (parsedPets.length > 0) {
-            setActivePetId(parsedPets[0].id);
-          } else {
-            setActivePetId("");
-          }
-        } else {
-          setPets([]);
-          setActivePetId("");
-        }
-      } else {
-        // Brand-new user.
-        setPets([]);
-        setActivePetId("");
-      }
-    } catch (error) {
-      console.error(
-        "Failed to load user pets:",
-        error
-      );
-
-      setPets([]);
-      setActivePetId("");
-    }
-
-    // ========================================
-    // LOAD APPOINTMENTS
-    // ========================================
-
-    try {
-      const savedAppointments =
-        localStorage.getItem(appointmentsKey);
-
-      if (savedAppointments) {
-        const parsedAppointments =
-          JSON.parse(savedAppointments);
-
-        if (Array.isArray(parsedAppointments)) {
-          setAppointments(parsedAppointments);
-        } else {
-          setAppointments([]);
-        }
-      } else {
-        // Brand-new user.
-        setAppointments([]);
-      }
-    } catch (error) {
-      console.error(
-        "Failed to load user appointments:",
-        error
-      );
-
-      setAppointments([]);
-    }
-
-  }, [currentUser?.id]);
-
-  // ==========================================
-  // SAVE USER-SPECIFIC PETS
-  // ==========================================
-
-  useEffect(() => {
-    if (!currentUser?.id) {
-      return;
-    }
-
-    try {
-      localStorage.setItem(
-        `furcare_pets_${currentUser.id}`,
-        JSON.stringify(pets)
-      );
-    } catch (error) {
-      console.error(
-        "Failed to save pets:",
-        error
-      );
-    }
-  }, [pets, currentUser?.id]);
-
-  // ==========================================
-  // SAVE ACTIVE PET
-  // ==========================================
-
-  useEffect(() => {
-    if (!currentUser?.id) {
-      return;
-    }
-
-    try {
-      const key =
-        `furcare_active_pet_${currentUser.id}`;
-
-      if (activePetId) {
-        localStorage.setItem(
-          key,
-          activePetId
-        );
-      } else {
-        localStorage.removeItem(key);
-      }
-    } catch (error) {
-      console.error(
-        "Failed to save active pet:",
-        error
-      );
-    }
-  }, [
-    activePetId,
-    currentUser?.id,
-  ]);
-
-  // ==========================================
-  // SAVE CART
-  // ==========================================
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        "furcare_cart",
-        JSON.stringify(cart)
-      );
-    } catch (error) {
-      console.error(
-        "Failed to save cart:",
-        error
-      );
-    }
-  }, [cart]);
-
-  // ==========================================
-  // SAVE USER-SPECIFIC APPOINTMENTS
-  // ==========================================
-
-  useEffect(() => {
-    if (!currentUser?.id) {
-      return;
-    }
-
-    try {
-      localStorage.setItem(
-        `furcare_appts_${currentUser.id}`,
-        JSON.stringify(appointments)
-      );
-    } catch (error) {
-      console.error(
-        "Failed to save appointments:",
-        error
-      );
-    }
-  }, [
-    appointments,
-    currentUser?.id,
-  ]);
+  const removeToast = (
+    id: string
+  ) => {
+    setToasts((prev) =>
+      prev.filter(
+        (toast) =>
+          toast.id !== id
+      )
+    );
+  };
 
   // ==========================================
   // TOAST SYSTEM
@@ -506,7 +313,8 @@ export const AppProvider: React.FC<{
 
   const addToast = (
     message: string,
-    type: ToastNotification["type"] = "info"
+    type: ToastNotification["type"] =
+      "info"
   ) => {
     const id =
       "TST-" +
@@ -518,7 +326,8 @@ export const AppProvider: React.FC<{
       id,
       message,
       type,
-      time: new Date().toLocaleTimeString(),
+      time:
+        new Date().toLocaleTimeString(),
     };
 
     setToasts((prev) => [
@@ -532,87 +341,425 @@ export const AppProvider: React.FC<{
   };
 
   // ==========================================
-  // REMOVE TOAST
+  // RESTORE AUTHENTICATED SESSION
   // ==========================================
 
-  const removeToast = (id: string) => {
-    setToasts((prev) =>
-      prev.filter(
-        (toast) => toast.id !== id
-      )
-    );
-  };
+  useEffect(() => {
+    let mounted = true;
 
-  const setActivePage = (page: PageName) => {
+    const restoreSession =
+      async () => {
+        try {
+          const result =
+            await authApi.me();
+
+          if (!mounted) {
+            return;
+          }
+
+          if (result?.user) {
+            setCurrentUser(
+              result.user
+            );
+          } else {
+            setCurrentUser(null);
+          }
+
+        } catch (error) {
+          if (!mounted) {
+            return;
+          }
+
+          console.log(
+            "No authenticated session found."
+          );
+
+          setCurrentUser(null);
+        }
+      };
+
+    restoreSession();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // ==========================================
+  // LOAD PETS FROM DATABASE
+  // ==========================================
+  //
+  // Whenever the logged-in user changes:
+  //
+  // 1. No user -> []
+  // 2. User -> GET /api/pets
+  //
+  // The backend must return only the pets
+  // belonging to the authenticated user.
+  //
+  // ==========================================
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadPets =
+      async () => {
+
+        // --------------------------------------
+        // NO USER
+        // --------------------------------------
+
+        if (!currentUser?.id) {
+
+          setPets([]);
+          setActivePetId("");
+
+          return;
+        }
+
+        // --------------------------------------
+        // USER LOGGED IN
+        // --------------------------------------
+
+        try {
+
+          const userPets =
+            await petsApi.getMyPets();
+
+          if (!mounted) {
+            return;
+          }
+
+          // ------------------------------------
+          // Store database pets in React state
+          // ------------------------------------
+
+          setPets(userPets);
+
+          // ------------------------------------
+          // Select first pet
+          // ------------------------------------
+
+          if (
+            userPets.length > 0
+          ) {
+
+            setActivePetId(
+              userPets[0].id
+            );
+
+          } else {
+
+            // ----------------------------------
+            // BRAND NEW USER
+            // ----------------------------------
+
+            setActivePetId("");
+          }
+
+        } catch (error) {
+
+          if (!mounted) {
+            return;
+          }
+
+          console.error(
+            "Failed to load pets:",
+            error
+          );
+
+          setPets([]);
+          setActivePetId("");
+
+          addToast(
+            error instanceof Error
+              ? error.message
+              : "Failed to load your pets.",
+            "warning"
+          );
+        }
+      };
+
+    loadPets();
+
+    return () => {
+      mounted = false;
+    };
+
+  }, [currentUser?.id]);
+
+  // ==========================================
+  // SAVE CART
+  // ==========================================
+
+  useEffect(() => {
+
+    try {
+
+      localStorage.setItem(
+        "furcare_cart",
+        JSON.stringify(cart)
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Failed to save cart:",
+        error
+      );
+    }
+
+  }, [cart]);
+
+  // ==========================================
+  // LOAD USER APPOINTMENTS
+  // ==========================================
+
+  useEffect(() => {
+
+    if (!currentUser?.id) {
+
+      setAppointments([]);
+
+      return;
+    }
+
+    try {
+
+      const saved =
+        localStorage.getItem(
+          `furcare_appts_${currentUser.id}`
+        );
+
+      if (saved) {
+
+        const parsed =
+          JSON.parse(saved);
+
+        if (
+          Array.isArray(parsed)
+        ) {
+
+          setAppointments(
+            parsed
+          );
+
+        } else {
+
+          setAppointments([]);
+        }
+
+      } else {
+
+        setAppointments([]);
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Failed to load appointments:",
+        error
+      );
+
+      setAppointments([]);
+    }
+
+  }, [currentUser?.id]);
+
+  // ==========================================
+  // SAVE USER APPOINTMENTS
+  // ==========================================
+
+  useEffect(() => {
+
+    if (!currentUser?.id) {
+      return;
+    }
+
+    try {
+
+      localStorage.setItem(
+        `furcare_appts_${currentUser.id}`,
+        JSON.stringify(
+          appointments
+        )
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Failed to save appointments:",
+        error
+      );
+    }
+
+  }, [
+    appointments,
+    currentUser?.id,
+  ]);
+
+  // ==========================================
+  // PAGE NAVIGATION
+  // ==========================================
+
+  const setActivePage = (
+    page: PageName
+  ) => {
+
+    // Protected pages
+
     if (
       !currentUser?.id &&
-      (page === "cart" || page === "dashboard")
+      (
+        page === "cart" ||
+        page === "dashboard"
+      )
     ) {
+
       setPendingPage(page);
-      addToast("Please log in to continue.", "warning");
-      setActivePageState("login");
+
+      addToast(
+        "Please log in to continue.",
+        "warning"
+      );
+
+      setActivePageState(
+        "login"
+      );
+
       return;
     }
 
     setActivePageState(page);
   };
 
+  // ==========================================
+  // AUTH CHECK
+  // ==========================================
+
   const requireAuth = () => {
+
     if (currentUser?.id) {
       return true;
     }
 
-    addToast("Please log in to continue.", "warning");
-    setActivePageState("login");
+    addToast(
+      "Please log in to continue.",
+      "warning"
+    );
+
+    setActivePageState(
+      "login"
+    );
+
     return false;
   };
 
   // ==========================================
   // ADD PET
   // ==========================================
+  //
+  // IMPORTANT:
+  //
+  // Age and vaccination history are included
+  // in petData and sent directly to MongoDB.
+  //
+  // The frontend DOES NOT assign owner_id.
+  //
+  // The backend must determine owner_id from
+  // the authenticated user/session.
+  //
+  // ==========================================
 
-  const addPet = (
+  const addPet = async (
     petData: Omit<Pet, "id">
-  ) => {
+  ): Promise<void> => {
 
-    // Don't allow pets without
-    // an authenticated owner.
+    // ----------------------------------------
+    // CHECK AUTHENTICATION
+    // ----------------------------------------
 
     if (!requireAuth()) {
       return;
     }
 
-    const newId =
-      "PET-" +
-      Date.now()
-        .toString(36)
-        .toUpperCase();
+    try {
 
-    const newPet: Pet = {
-      ...petData,
+      // --------------------------------------
+      // NEVER trust owner_id from frontend
+      // --------------------------------------
 
-      id: newId,
+      const {
+        owner_id: _ownerId,
+        ...petPayload
+      } = petData;
 
-      // Always use the authenticated
-      // user's ID as the owner.
-      owner_id: currentUser.id,
-    };
+      // --------------------------------------
+      // CREATE PET IN MONGODB
+      //
+      // petPayload contains:
+      //
+      // name
+      // species
+      // breed
+      // ageYears
+      // ageMonths
+      // color
+      // weightKg
+      // gender
+      // photoUrl
+      // allergies
+      // vaccinations
+      // medicalHistory
+      // microchipId
+      //
+      // --------------------------------------
 
-    setPets((prev) => [
-      ...prev,
-      newPet,
-    ]);
+      const newPet =
+        await petsApi.createPet(
+          petPayload
+        );
 
-    // Automatically select the
-    // newly registered pet.
+      // --------------------------------------
+      // UPDATE DASHBOARD IMMEDIATELY
+      // --------------------------------------
 
-    setActivePetId(newId);
+      setPets((prev) => [
+        newPet,
+        ...prev,
+      ]);
 
-    addToast(
-      `Registered new pet: ${newPet.name}!`,
-      "success"
-    );
+      // --------------------------------------
+      // SELECT NEW PET
+      // --------------------------------------
 
+      setActivePetId(
+        newPet.id
+      );
+
+      // --------------------------------------
+      // SUCCESS MESSAGE
+      // --------------------------------------
+
+      addToast(
+        `Registered new pet: ${newPet.name}!`,
+        "success"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Failed to register pet:",
+        error
+      );
+
+      addToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to register pet. Please try again.",
+        "warning"
+      );
+    }
   };
 
   // ==========================================
@@ -622,9 +769,10 @@ export const AppProvider: React.FC<{
   const addToCart = (
     product: Product,
     quantity: number = 1,
-    type: CartItem["type"] = "product",
+    type: CartItem["type"] =
+      "product",
     customData?: Record<string, any>
-  ) => {
+  ): boolean => {
 
     if (!requireAuth()) {
       return false;
@@ -639,14 +787,26 @@ export const AppProvider: React.FC<{
             product.product_id
         );
 
-      if (existingIndex > -1) {
-        const updated = [...prev];
+      if (
+        existingIndex > -1
+      ) {
 
-        updated[existingIndex] = {
-          ...updated[existingIndex],
+        const updated = [
+          ...prev,
+        ];
+
+        updated[
+          existingIndex
+        ] = {
+
+          ...updated[
+            existingIndex
+          ],
 
           quantity:
-            updated[existingIndex].quantity +
+            updated[
+              existingIndex
+            ].quantity +
             quantity,
         };
 
@@ -688,7 +848,11 @@ export const AppProvider: React.FC<{
     }
 
     if (quantity <= 0) {
-      removeFromCart(productId);
+
+      removeFromCart(
+        productId
+      );
+
       return;
     }
 
@@ -738,6 +902,7 @@ export const AppProvider: React.FC<{
   // ==========================================
 
   const clearCart = () => {
+
     if (!requireAuth()) {
       return;
     }
@@ -789,6 +954,10 @@ export const AppProvider: React.FC<{
     id: string
   ) => {
 
+    if (!requireAuth()) {
+      return;
+    }
+
     setAppointments((prev) =>
       prev.filter(
         (appointment) =>
@@ -811,44 +980,45 @@ export const AppProvider: React.FC<{
   const addAdoptionListing = (
     item: AdoptionListing
   ) => {
-    setAdoptionListings((prev) => [
-      item,
-      ...prev,
-    ]);
+
+    setAdoptionListings(
+      (prev) => [
+        item,
+        ...prev,
+      ]
+    );
   };
 
   // ==========================================
   // UPCOMING APPOINTMENT REMINDER
   // ==========================================
 
-  const triggerUpcomingReminders = () => {
+  const triggerUpcomingReminders =
+    () => {
 
-    // Don't show the old hard-coded
-    // Rocky reminder.
+      if (
+        !currentUser?.id ||
+        appointments.length === 0
+      ) {
+        return;
+      }
 
-    if (appointments.length === 0) {
-      return;
-    }
+      const upcomingAppointment =
+        appointments[0];
 
-    const upcomingAppointment =
-      appointments[0];
-
-    addToast(
-      language === "bn"
-        ? `⏰ রিমাইন্ডার: ${upcomingAppointment.petName} এর জন্য ${upcomingAppointment.vetName} এর সাথে অ্যাপয়েন্টমেন্ট আছে।`
-        : `⏰ Reminder: ${upcomingAppointment.petName} has an appointment with ${upcomingAppointment.vetName}.`,
-      "reminder"
-    );
-  };
+      addToast(
+        language === "bn"
+          ? `⏰ রিমাইন্ডার: ${upcomingAppointment.petName} এর জন্য ${upcomingAppointment.vetName} এর সাথে অ্যাপয়েন্টমেন্ট আছে।`
+          : `⏰ Reminder: ${upcomingAppointment.petName} has an appointment with ${upcomingAppointment.vetName}.`,
+        "reminder"
+      );
+    };
 
   // ==========================================
   // INITIAL REMINDER
   // ==========================================
 
   useEffect(() => {
-
-    // Don't automatically show a reminder
-    // for a fake/demo appointment.
 
     if (
       !currentUser?.id ||
@@ -857,9 +1027,12 @@ export const AppProvider: React.FC<{
       return;
     }
 
-    const timer = setTimeout(() => {
-      triggerUpcomingReminders();
-    }, 2000);
+    const timer =
+      setTimeout(() => {
+
+        triggerUpcomingReminders();
+
+      }, 2000);
 
     return () => {
       clearTimeout(timer);
@@ -878,22 +1051,45 @@ export const AppProvider: React.FC<{
   return (
     <AppContext.Provider
       value={{
+
+        // ------------------------------------
+        // Language
+        // ------------------------------------
+
         language,
         setLanguage,
+
+        // ------------------------------------
+        // Navigation
+        // ------------------------------------
 
         activePage,
         setActivePage,
 
+        // ------------------------------------
+        // User
+        // ------------------------------------
+
         currentUser,
         setCurrentUser,
+
         requireAuth,
+
         pendingPage,
         setPendingPage,
+
+        // ------------------------------------
+        // Pets
+        // ------------------------------------
 
         pets,
         activePetId,
         setActivePetId,
         addPet,
+
+        // ------------------------------------
+        // Cart
+        // ------------------------------------
 
         cart,
         addToCart,
@@ -901,19 +1097,39 @@ export const AppProvider: React.FC<{
         removeFromCart,
         clearCart,
 
+        // ------------------------------------
+        // Appointments
+        // ------------------------------------
+
         appointments,
         addAppointment,
         cancelAppointment,
 
+        // ------------------------------------
+        // AI
+        // ------------------------------------
+
         isAiModalOpen,
         setIsAiModalOpen,
+
+        // ------------------------------------
+        // Toasts
+        // ------------------------------------
 
         toasts,
         addToast,
         removeToast,
 
+        // ------------------------------------
+        // Adoption
+        // ------------------------------------
+
         adoptionListings,
         addAdoptionListing,
+
+        // ------------------------------------
+        // Simulated time
+        // ------------------------------------
 
         simulatedTime,
         triggerUpcomingReminders,
@@ -934,14 +1150,11 @@ export const useApp = () => {
     useContext(AppContext);
 
   if (!context) {
+
     throw new Error(
       "useApp must be used within an AppProvider"
     );
   }
 
   return context;
-<<<<<<< HEAD
 };
-=======
-};
->>>>>>> 4d7a7b28171e369a677de36b96cc9b5e35d8bdd6

@@ -160,22 +160,67 @@ export interface PetHotel {
 
 export interface LostAndFoundListing {
   id: string;
-  type: "lost" | "found";
+
+  owner_id?: string;
+
+  type:
+    | "lost"
+    | "found";
+
   petName?: string;
-  species: PetSpecies;
+
+  species:
+    | "dog"
+    | "cat"
+    | "rabbit";
+
   breed: string;
+
   color: string;
+
   eyeColor: string;
-  faceStructure: "round" | "long" | "pointed" | "flat";
+
+  faceStructure:
+    | "round"
+    | "long"
+    | "pointed"
+    | "flat";
+
   collarNeckband?: string;
+
   birthmarkOrFeature?: string;
+
   lastWearCloth?: string;
+
   lastLocation: string;
+
   contactPhone: string;
+
   contactName: string;
+
   photoUrl: string;
-  status: "active" | "matched" | "resolved";
+
+  status:
+    | "active"
+    | "matched"
+    | "resolved";
+
   reportedDate: string;
+
+  imageFeatures?: {
+    species?: string;
+    breed?: string;
+    color?: string;
+    markings?: string[];
+    facialFeatures?: string[];
+    distinctiveFeatures?: string[];
+  };
+
+  aiMatches?: {
+    listingId: string;
+    confidence: number;
+    reason: string;
+  }[];
 }
 
 export interface PetFriendlyPlace {
