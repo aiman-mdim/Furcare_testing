@@ -212,4 +212,4 @@ export const PetHotelPage: React.FC = () => {
 
     </div>
   );
-};
+}; 

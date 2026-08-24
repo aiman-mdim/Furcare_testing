@@ -1,131 +1,341 @@
-import React, { useState } from "react";
-import { mockVets } from "../data/mockData";
-import { useApp } from "../context/AppContext";
+import React, {
+  useState,
+} from "react";
 
-export const VetAppointmentPage: React.FC = () => {
-  const { addAppointment, requireAuth } = useApp();
-  const [selectedSlots, setSelectedSlots] = useState<{ [key: string]: string }>({});
+import {
+  mockVets,
+} from "../data/mockData";
 
-  const handleSlotSelect = (vetId: string, slot: string) => {
-    setSelectedSlots((prev) => ({
-      ...prev,
-      [vetId]: slot,
-    }));
+import {
+  useApp,
+} from "../context/AppContext";
+
+import {
+  Product,
+} from "../types";
+
+
+export const VetAppointmentPage:
+  React.FC = () => {
+
+  const {
+    addToCart,
+    requireAuth,
+    addToast,
+    setActivePage,
+  } = useApp();
+
+
+  const [
+    selectedSlots,
+    setSelectedSlots,
+  ] = useState<{
+    [key: string]: string;
+  }>({});
+
+
+  const handleSlotSelect = (
+    vetId: string,
+    slot: string
+  ) => {
+
+    setSelectedSlots(
+      (prev) => ({
+        ...prev,
+
+        [vetId]:
+          slot,
+      })
+    );
   };
 
-  const handleBookAppointment = (vet: (typeof mockVets)[number], selectedSlot: string) => {
-    if (!requireAuth()) return;
 
-    addAppointment({
-      pet_id: "PENDING-PET",
-      petName: "My pet",
-      vet_id: vet.id,
-      vetName: vet.name,
-      clinicName: vet.clinicName,
-      area: vet.area,
-      date: new Date().toISOString().split("T")[0],
-      time: selectedSlot,
-      status: "scheduled",
-      feeTk: vet.feeTk,
-      consultationType: "in_person",
-    });
+  const handleBookAppointment = (
+    vet:
+      (typeof mockVets)[number],
+
+    selectedSlot:
+      string
+  ) => {
+
+    if (!requireAuth()) {
+      return;
+    }
+
+
+    const appointmentProduct:
+      Product = {
+
+        product_id:
+          `VET-${vet.id}-${selectedSlot}`,
+
+        nameEn:
+          `Vet Appointment - ${vet.name}`,
+
+        nameBn:
+          `ভেট অ্যাপয়েন্টমেন্ট - ${vet.name}`,
+
+        category:
+          "healthcare",
+
+        targetSpecies:
+          "all",
+
+        priceTk:
+          vet.feeTk,
+
+        rating:
+          vet.rating,
+
+        reviewsCount:
+          0,
+
+        image:
+          vet.photoUrl,
+
+        descriptionEn:
+          `${vet.specialty} appointment at ${vet.clinicName}`,
+
+        descriptionBn:
+          `${vet.clinicName} এ ভেট অ্যাপয়েন্টমেন্ট`,
+
+        stock:
+          1,
+      };
+
+
+    const added =
+      addToCart(
+        appointmentProduct,
+
+        1,
+
+        "vet_appointment",
+
+        {
+          vetId:
+            vet.id,
+
+          vetName:
+            vet.name,
+
+          clinicName:
+            vet.clinicName,
+
+          area:
+            vet.area,
+
+          date:
+            new Date()
+              .toISOString()
+              .split("T")[0],
+
+          time:
+            selectedSlot,
+
+          feeTk:
+            vet.feeTk,
+
+          consultationType:
+            "in_person",
+        }
+      );
+
+
+    if (added) {
+
+      addToast(
+        "Appointment added to cart. Complete payment to confirm.",
+        "success"
+      );
+
+
+      setActivePage(
+        "cart"
+      );
+    }
   };
+
 
   return (
+
     <div className="max-w-7xl mx-auto px-4 py-8 font-sans">
-      <h1 className="text-2xl font-bold text-slate-900 mb-6">Book Vet Appointment</h1>
-      
+
+      <h1 className="text-2xl font-bold text-slate-900 mb-6">
+
+        Book Vet Appointment
+
+      </h1>
+
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {mockVets.map((vet) => {
-          const selectedSlot = selectedSlots[vet.id];
 
-          return (
-            <div 
-              key={vet.id} 
-              className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-4 hover:shadow-md transition-shadow"
-            >
-              {/* Doctor Header */}
-              <div className="flex items-start gap-4">
-                <div className="w-20 h-20 rounded-2xl border border-slate-100 bg-slate-50 overflow-hidden shrink-0">
-                  <img
-                    src={vet.photoUrl}
-                    alt={vet.name}
-                    className="w-full h-full object-cover object-top"
-                  />
-                </div>
+        {mockVets.map(
+          (vet) => {
 
-                <div className="space-y-1">
-                  <h3 className="font-bold text-slate-900 text-lg leading-snug">{vet.name}</h3>
-                  <p className="text-sm font-semibold text-blue-600 leading-tight">
-                    {vet.specialty}
-                  </p>
-                  <p className="text-xs text-slate-500">{vet.qualification}</p>
-                </div>
-              </div>
+            const selectedSlot =
+              selectedSlots[
+                vet.id
+              ];
 
-              {/* Location, Rating, and Fee */}
-              <div className="space-y-2 pt-2 border-t border-slate-100 text-sm">
-                <div className="flex items-center gap-2 text-slate-600 text-xs">
-                  <span className="text-red-500">📍</span>
-                  <span className="truncate">{vet.clinicName}, {vet.area}</span>
-                </div>
 
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1 font-bold text-amber-500">
-                    <span>★</span>
-                    <span>{vet.rating}</span>
-                    {vet.experienceYears && (
-                      <span className="text-amber-600/80 font-normal">
-                        ({vet.experienceYears} yrs exp)
-                      </span>
-                    )}
-                  </div>
-                  <span className="font-extrabold text-slate-900 text-base">৳{vet.feeTk}</span>
-                </div>
-              </div>
+            return (
 
-              {/* Slots */}
-              <div className="space-y-2 pt-1">
-                <p className="text-[11px] font-bold text-slate-400 tracking-wider uppercase">
-                  AVAILABLE SLOTS TODAY:
-                </p>
-                <div className="grid grid-cols-4 gap-2">
-                  {vet.availableTimes.map((slot) => {
-                    const isSelected = selectedSlot === slot;
-                    return (
-                      <button
-                        key={slot}
-                        onClick={() => handleSlotSelect(vet.id, slot)}
-                        className={`py-2 px-1 text-[11px] font-bold rounded-xl transition-all ${
-                          isSelected
-                            ? "bg-blue-600 text-white shadow-sm"
-                            : "bg-blue-50/70 text-blue-600 border border-blue-200 hover:bg-blue-100"
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              {/* Action Button */}
-              <button 
-                className={`w-full py-3 font-bold rounded-2xl transition-all active:scale-[0.98] ${
-                  selectedSlot 
-                    ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md" 
-                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                }`}
-                disabled={!selectedSlot}
-                onClick={() => selectedSlot && handleBookAppointment(vet, selectedSlot)}
+              <div
+                key={vet.id}
+                className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-4"
               >
-                {selectedSlot ? `Book Appointment (৳${vet.feeTk})` : "Select a Time Slot"}
-              </button>
-            </div>
-          );
-        })}
+
+                <div className="flex items-start gap-4">
+
+                  <img
+                    src={
+                      vet.photoUrl
+                    }
+
+                    alt={
+                      vet.name
+                    }
+
+                    className="w-20 h-20 rounded-2xl object-cover"
+                  />
+
+
+                  <div>
+
+                    <h3 className="font-bold text-slate-900 text-lg">
+
+                      {vet.name}
+
+                    </h3>
+
+
+                    <p className="text-sm text-blue-600">
+
+                      {vet.specialty}
+
+                    </p>
+
+
+                    <p className="text-xs text-slate-500">
+
+                      {vet.qualification}
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                <div className="text-sm border-t pt-3">
+
+                  <p>
+
+                    📍
+                    {" "}
+                    {vet.clinicName}
+
+                  </p>
+
+
+                  <p className="font-bold text-lg">
+
+                    ৳
+                    {vet.feeTk}
+
+                  </p>
+
+                </div>
+
+
+                <div>
+
+                  <p className="text-xs font-bold mb-2">
+
+                    AVAILABLE SLOTS
+
+                  </p>
+
+
+                  <div className="grid grid-cols-3 gap-2">
+
+                    {vet.availableTimes.map(
+                      (slot) => (
+
+                        <button
+                          key={
+                            slot
+                          }
+
+                          onClick={() =>
+                            handleSlotSelect(
+                              vet.id,
+                              slot
+                            )
+                          }
+
+                          className={`p-2 text-xs rounded-xl ${
+                            selectedSlot ===
+                            slot
+                              ? "bg-blue-600 text-white"
+                              : "bg-blue-50 text-blue-600"
+                          }`}
+                        >
+
+                          {slot}
+
+                        </button>
+                      )
+                    )}
+
+                  </div>
+
+                </div>
+
+
+                <button
+
+                  disabled={
+                    !selectedSlot
+                  }
+
+                  onClick={() =>
+                    selectedSlot &&
+                    handleBookAppointment(
+                      vet,
+                      selectedSlot
+                    )
+                  }
+
+                  className={`w-full py-3 font-bold rounded-xl ${
+                    selectedSlot
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-200 text-slate-400"
+                  }`}
+                >
+
+                  {selectedSlot
+
+                    ? `Add Appointment to Cart (৳${vet.feeTk})`
+
+                    : "Select a Time Slot"
+
+                  }
+
+                </button>
+
+              </div>
+            );
+          }
+        )}
+
       </div>
+
     </div>
   );
 };
 
-export default VetAppointmentPage;
+
+export default
+  VetAppointmentPage; 

@@ -395,4 +395,4 @@ export const VaccinationPage: React.FC = () => {
       )}
     </div>
   );
-};
+}; 

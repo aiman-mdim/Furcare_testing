@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { useApp } from "../context/AppContext";
 
@@ -7,6 +7,13 @@ import {
   PetSpecies,
   VaccineRecord,
 } from "../types";
+
+  PetSpecies,
+  VaccineRecord,
+  Order,
+} from "../types";
+
+import { ordersApi } from "../services/orders";
 
 import {
   Plus,
@@ -28,7 +35,45 @@ export const UserDashboardPage: React.FC = () => {
   } = useApp();
 
   // ==========================================
-  // MODAL
+  // PURCHASE / ORDER HISTORY
+  // ==========================================
+
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadOrders = async () => {
+      try {
+        setOrdersLoading(true);
+
+        const data = await ordersApi.getMyOrders();
+
+        if (mounted) {
+          setOrders(data);
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load orders:",
+          error
+        );
+      } finally {
+        if (mounted) {
+          setOrdersLoading(false);
+        }
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // ==========================================
+  // ADD PET MODAL
   // ==========================================
 
   const [
@@ -40,32 +85,25 @@ export const UserDashboardPage: React.FC = () => {
   // PET FORM
   // ==========================================
 
-  const [petName, setPetName] =
-    useState("");
+  const [petName, setPetName] = useState("");
 
   const [species, setSpecies] =
     useState<PetSpecies>("dog");
 
-  const [breed, setBreed] =
-    useState("");
+  const [breed, setBreed] = useState("");
 
-  const [ageYears, setAgeYears] =
-    useState(0);
+  const [ageYears, setAgeYears] = useState(0);
 
-  const [ageMonths, setAgeMonths] =
-    useState(0);
+  const [ageMonths, setAgeMonths] = useState(0);
 
-  const [weightKg, setWeightKg] =
-    useState(0);
+  const [weightKg, setWeightKg] = useState(0);
 
   const [gender, setGender] =
     useState<"male" | "female">("male");
 
-  const [color, setColor] =
-    useState("");
+  const [color, setColor] = useState("");
 
-  const [photoUrl, setPhotoUrl] =
-    useState("");
+  const [photoUrl, setPhotoUrl] = useState("");
 
   // ==========================================
   // VACCINATION FORM
@@ -219,9 +257,7 @@ export const UserDashboardPage: React.FC = () => {
       return;
     }
 
-    // -------------------------------
     // Basic validation
-    // -------------------------------
 
     if (!petName.trim()) {
       alert("Pet name is required.");
@@ -263,13 +299,13 @@ export const UserDashboardPage: React.FC = () => {
     }
 
     // ========================================
-    // IMPORTANT
-    // DO NOT create:
+    // PET DATA
     //
+    // Do NOT create:
     // id
     // owner_id
     //
-    // The backend creates/assigns them.
+    // Backend creates/assigns them.
     // ========================================
 
     const petData = {
@@ -344,7 +380,7 @@ export const UserDashboardPage: React.FC = () => {
           <div className="w-16 h-16 rounded-2xl bg-emerald-500 flex items-center justify-center font-black text-slate-950 text-2xl">
 
             {currentUser
-              ? currentUser.name.charAt(0)
+              ? currentUser.name.charAt(0).toUpperCase()
               : "U"}
 
           </div>
@@ -398,7 +434,7 @@ export const UserDashboardPage: React.FC = () => {
 
       <div className="max-w-6xl mx-auto space-y-4">
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
 
           <h2 className="text-xl font-black text-slate-900">
 
@@ -443,7 +479,7 @@ export const UserDashboardPage: React.FC = () => {
 
             <button
               onClick={openAddPetModal}
-              className="mt-5 px-5 py-3 bg-emerald-600 text-white rounded-xl font-bold"
+              className="mt-5 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold"
             >
 
               Register First Pet
@@ -474,7 +510,7 @@ export const UserDashboardPage: React.FC = () => {
                     className="w-16 h-16 rounded-2xl object-cover ring-2 ring-emerald-500/30"
                   />
 
-                  <div>
+                  <div className="min-w-0">
 
                     <span className="px-2 py-0.5 bg-slate-100 text-slate-700 font-mono text-[10px] font-bold rounded-md">
 
@@ -482,7 +518,7 @@ export const UserDashboardPage: React.FC = () => {
 
                     </span>
 
-                    <h3 className="font-bold text-slate-900">
+                    <h3 className="font-bold text-slate-900 truncate">
 
                       {pet.name}
 
@@ -546,9 +582,7 @@ export const UserDashboardPage: React.FC = () => {
 
                 <button
                   onClick={() =>
-                    setActivePage(
-                      "vaccines"
-                    )
+                    setActivePage("vaccines")
                   }
                   className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5"
                 >
@@ -558,6 +592,298 @@ export const UserDashboardPage: React.FC = () => {
                   View Digital Passport
 
                 </button>
+
+              </div>
+
+            ))}
+
+          </div>
+
+        )}
+
+      </div>
+
+      {/* ======================================
+          PURCHASE & BOOKING HISTORY
+      ====================================== */}
+
+      <div className="max-w-6xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-sm p-6 mt-8">
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+
+          <div>
+
+            <h2 className="text-xl font-black text-slate-900">
+
+              Purchase & Booking History
+
+            </h2>
+
+            <p className="text-xs text-slate-500 mt-1">
+
+              Your pet store orders,
+              appointments, grooming,
+              premium and adoption requests.
+
+            </p>
+
+          </div>
+
+          <span className="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-bold">
+
+            {orders.length} Orders
+
+          </span>
+
+        </div>
+
+        {/* LOADING */}
+
+        {ordersLoading ? (
+
+          <div className="py-10 text-center text-slate-400">
+
+            <p className="font-semibold">
+
+              Loading your purchases...
+
+            </p>
+
+          </div>
+
+        ) : orders.length === 0 ? (
+
+          /* EMPTY */
+
+          <div className="py-10 text-center">
+
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+
+              <ShieldCheck className="w-7 h-7 text-slate-400" />
+
+            </div>
+
+            <p className="font-semibold text-slate-600">
+
+              No purchases yet.
+
+            </p>
+
+            <p className="text-xs text-slate-400 mt-1">
+
+              Your orders and bookings
+              will appear here.
+
+            </p>
+
+          </div>
+
+        ) : (
+
+          /* ORDERS */
+
+          <div className="space-y-4">
+
+            {orders.map((order) => (
+
+              <div
+                key={order.id}
+                className="border border-slate-200 rounded-2xl p-5 hover:shadow-sm transition-all"
+              >
+
+                {/* ORDER HEADER */}
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+
+                  <div>
+
+                    <p className="font-black text-slate-900">
+
+                      {order.orderId}
+
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+
+                      {new Date(
+                        order.createdAt
+                      ).toLocaleString()}
+
+                    </p>
+
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+
+                    <span
+                      className={`px-3 py-1 rounded-full text-[11px] font-bold ${
+                        order.paymentStatus ===
+                        "paid"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : order.paymentStatus ===
+                            "not_required"
+                          ? "bg-blue-100 text-blue-700"
+                          : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+
+                      {order.paymentStatus ===
+                      "not_required"
+                        ? "No Payment Required"
+                        : order.paymentStatus}
+
+                    </span>
+
+                    <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-[11px] font-bold">
+
+                      {order.orderStatus}
+
+                    </span>
+
+                  </div>
+
+                </div>
+
+                {/* ORDER ITEMS */}
+
+                <div className="mt-4 divide-y">
+
+                  {order.items.map(
+                    (item, index) => (
+
+                      <div
+                        key={`${order.id}-${index}`}
+                        className="py-3 flex justify-between gap-4"
+                      >
+
+                        <div className="min-w-0">
+
+                          <p className="font-bold text-sm text-slate-900">
+
+                            {item.name}
+
+                          </p>
+
+                          <p className="text-[11px] text-slate-500 capitalize mt-1">
+
+                            {item.type.replace(
+                              "_",
+                              " "
+                            )}
+
+                            {" • "}
+
+                            Qty:{" "}
+                            {item.quantity}
+
+                          </p>
+
+                          {/* DATE */}
+
+                          {item.customData
+                            ?.date && (
+
+                            <p className="text-[11px] text-blue-600 mt-1">
+
+                              Date:{" "}
+                              {
+                                item
+                                  .customData
+                                  .date
+                              }
+
+                            </p>
+
+                          )}
+
+                          {/* TIME */}
+
+                          {item.customData
+                            ?.time && (
+
+                            <p className="text-[11px] text-blue-600">
+
+                              Time:{" "}
+                              {
+                                item
+                                  .customData
+                                  .time
+                              }
+
+                            </p>
+
+                          )}
+
+                          {/* GROOMING TYPE */}
+
+                          {item.customData
+                            ?.groomingType && (
+
+                            <p className="text-[11px] text-purple-600 capitalize">
+
+                              Grooming:{" "}
+                              {
+                                item
+                                  .customData
+                                  .groomingType
+                              }
+
+                            </p>
+
+                          )}
+
+                          {/* PREMIUM PLAN */}
+
+                          {item.customData
+                            ?.planName && (
+
+                            <p className="text-[11px] text-amber-600">
+
+                              Plan:{" "}
+                              {
+                                item
+                                  .customData
+                                  .planName
+                              }
+
+                            </p>
+
+                          )}
+
+                        </div>
+
+                        <p className="font-black text-sm text-slate-900 whitespace-nowrap">
+
+                          ৳
+                          {item.priceTk *
+                            item.quantity}
+
+                        </p>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+                {/* ORDER TOTAL */}
+
+                <div className="border-t border-slate-200 mt-3 pt-3 flex justify-between items-center">
+
+                  <span className="font-bold text-slate-600">
+
+                    Total
+
+                  </span>
+
+                  <span className="font-black text-emerald-700 text-lg">
+
+                    ৳{order.totalAmount}
+
+                  </span>
+
+                </div>
 
               </div>
 
@@ -607,7 +933,7 @@ export const UserDashboardPage: React.FC = () => {
                   setIsAddPetModalOpen(false);
                   resetPetForm();
                 }}
-                className="p-2 bg-slate-100 rounded-xl"
+                className="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl"
               >
 
                 <X className="w-5 h-5" />
@@ -1065,8 +1391,7 @@ export const UserDashboardPage: React.FC = () => {
 
                 {/* ADDED VACCINATIONS */}
 
-                {vaccinations.length >
-                  0 && (
+                {vaccinations.length > 0 && (
 
                   <div className="mt-4 space-y-2">
 
@@ -1154,7 +1479,7 @@ export const UserDashboardPage: React.FC = () => {
 
                     resetPetForm();
                   }}
-                  className="px-5 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl"
+                  className="px-5 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
                 >
 
                   Cancel
@@ -1182,4 +1507,4 @@ export const UserDashboardPage: React.FC = () => {
 
     </div>
   );
-};
+}; 
