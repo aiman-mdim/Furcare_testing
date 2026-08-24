@@ -482,10 +482,9 @@ export const UserDashboardPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-            {pets.map((pet) => (
-
-              <div
-                key={pet.id}
+           {pets.map((pet, index) => (
+  <div
+    key={`pet-${pet.id}-${index}`}
                 className="bg-white rounded-3xl p-5 shadow-md border border-slate-200 hover:shadow-xl transition-all space-y-4"
               >
 
