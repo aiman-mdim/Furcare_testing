@@ -4,33 +4,6 @@ import mongoose, {
   Schema,
 } from "mongoose";
 
-// ============================================
-// AI MATCH TYPE
-// ============================================
-
-interface IAIMatch {
-  listingId: string;
-  confidence: number;
-  reason: string;
-}
-
-// ============================================
-// IMAGE FEATURES
-// ============================================
-
-interface IImageFeatures {
-  species?: string;
-  breed?: string;
-  color?: string;
-  markings?: string[];
-  facialFeatures?: string[];
-  distinctiveFeatures?: string[];
-}
-
-// ============================================
-// LOST / FOUND DOCUMENT
-// ============================================
-
 export interface ILostFound extends Document {
   owner_id: mongoose.Types.ObjectId;
 
@@ -76,80 +49,10 @@ export interface ILostFound extends Document {
 
   reportedDate: string;
 
-  imageFeatures?: IImageFeatures;
-
-  aiMatches?: IAIMatch[];
-
   createdAt: Date;
 
   updatedAt: Date;
 }
-
-// ============================================
-// AI MATCH SCHEMA
-// ============================================
-
-const AIMatchSchema =
-  new Schema<IAIMatch>(
-    {
-      listingId: {
-        type: String,
-        required: true,
-      },
-
-      confidence: {
-        type: Number,
-        min: 0,
-        max: 100,
-        required: true,
-      },
-
-      reason: {
-        type: String,
-        default: "",
-      },
-    },
-    {
-      _id: false,
-    }
-  );
-
-// ============================================
-// IMAGE FEATURES SCHEMA
-// ============================================
-
-const ImageFeaturesSchema =
-  new Schema<IImageFeatures>(
-    {
-      species: String,
-
-      breed: String,
-
-      color: String,
-
-      markings: {
-        type: [String],
-        default: [],
-      },
-
-      facialFeatures: {
-        type: [String],
-        default: [],
-      },
-
-      distinctiveFeatures: {
-        type: [String],
-        default: [],
-      },
-    },
-    {
-      _id: false,
-    }
-  );
-
-// ============================================
-// MAIN SCHEMA
-// ============================================
 
 const LostFoundSchema =
   new Schema<ILostFound>(
@@ -163,8 +66,12 @@ const LostFoundSchema =
 
       type: {
         type: String,
-        enum: ["lost", "found"],
+        enum: [
+          "lost",
+          "found",
+        ],
         required: true,
+        index: true,
       },
 
       petName: {
@@ -187,18 +94,21 @@ const LostFoundSchema =
         type: String,
         required: true,
         trim: true,
+        maxlength: 100,
       },
 
       color: {
         type: String,
         required: true,
         trim: true,
+        maxlength: 100,
       },
 
       eyeColor: {
         type: String,
         required: true,
         trim: true,
+        maxlength: 100,
       },
 
       faceStructure: {
@@ -215,34 +125,40 @@ const LostFoundSchema =
       collarNeckband: {
         type: String,
         trim: true,
+        maxlength: 200,
       },
 
       birthmarkOrFeature: {
         type: String,
         trim: true,
+        maxlength: 500,
       },
 
       lastWearCloth: {
         type: String,
         trim: true,
+        maxlength: 200,
       },
 
       lastLocation: {
         type: String,
         required: true,
         trim: true,
+        maxlength: 300,
       },
 
       contactPhone: {
         type: String,
         required: true,
         trim: true,
+        maxlength: 50,
       },
 
       contactName: {
         type: String,
         required: true,
         trim: true,
+        maxlength: 100,
       },
 
       photoUrl: {
@@ -259,21 +175,12 @@ const LostFoundSchema =
           "resolved",
         ],
         default: "active",
+        index: true,
       },
 
       reportedDate: {
         type: String,
         required: true,
-      },
-
-      imageFeatures: {
-        type: ImageFeaturesSchema,
-        default: undefined,
-      },
-
-      aiMatches: {
-        type: [AIMatchSchema],
-        default: [],
       },
     },
     {
@@ -282,17 +189,16 @@ const LostFoundSchema =
     }
   );
 
-// ============================================
-// INDEXES
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| INDEXES
+|--------------------------------------------------------------------------
+*/
 
 LostFoundSchema.index({
   type: 1,
   status: 1,
-});
-
-LostFoundSchema.index({
-  species: 1,
+  createdAt: -1,
 });
 
 LostFoundSchema.index({
@@ -300,9 +206,15 @@ LostFoundSchema.index({
   createdAt: -1,
 });
 
-// ============================================
-// MODEL
-// ============================================
+LostFoundSchema.index({
+  species: 1,
+});
+
+/*
+|--------------------------------------------------------------------------
+| MODEL
+|--------------------------------------------------------------------------
+*/
 
 const LostFound: Model<ILostFound> =
   mongoose.models.LostFound ||

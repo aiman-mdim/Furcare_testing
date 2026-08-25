@@ -1,118 +1,240 @@
-export interface AIMatchResult {
-  listingId: string;
-  confidence: number;
-  reason: string;
-  listing: any;
+import axios from "axios";
+
+export type LostFoundType = "lost" | "found";
+
+export interface LostFoundReport {
+  _id: string;
+  owner_id: string;
+
+  type: LostFoundType;
+
+  petName?: string;
+
+  species: "dog" | "cat" | "rabbit";
+
+  breed: string;
+  color: string;
+  eyeColor: string;
+
+  faceStructure:
+    | "round"
+    | "long"
+    | "pointed"
+    | "flat";
+
+  collarNeckband?: string;
+  birthmarkOrFeature?: string;
+  lastWearCloth?: string;
+
+  lastLocation: string;
+
+  contactPhone: string;
+  contactName: string;
+
+  photoUrl: string;
+
+  status:
+    | "active"
+    | "matched"
+    | "resolved";
+
+  reportedDate: string;
+
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface FindPetMatchesResponse {
-  matches: AIMatchResult[];
-  analysis: string;
+export interface CreateLostFoundData {
+  type: LostFoundType;
+
+  petName?: string;
+
+  species: "dog" | "cat" | "rabbit";
+
+  breed: string;
+  color: string;
+  eyeColor: string;
+
+  faceStructure:
+    | "round"
+    | "long"
+    | "pointed"
+    | "flat";
+
+  collarNeckband?: string;
+  birthmarkOrFeature?: string;
+  lastWearCloth?: string;
+
+  lastLocation: string;
+
+  contactPhone: string;
+  contactName: string;
+
+  reportedDate?: string;
+
+  image: File;
 }
 
-const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      try {
-        const result = reader.result as string;
-
-        // Remove:
-        // data:image/jpeg;base64,
-        // data:image/png;base64,
-        // etc.
-        const base64 = result.split(",")[1];
-
-        if (!base64) {
-          reject(new Error("Could not read the image."));
-          return;
-        }
-
-        resolve(base64);
-      } catch (error) {
-        reject(error);
-      }
-    };
-
-    reader.onerror = () => {
-      reject(new Error("Failed to read the selected image."));
-    };
-
-    reader.readAsDataURL(file);
-  });
-};
+const API_URL = "/api/lost-found";
 
 export const lostFoundApi = {
-  async findPetMatches(
-    imageFile: File
-  ): Promise<AIMatchResult[]> {
-    if (!imageFile) {
-      throw new Error("Please select a pet image.");
-    }
+  /**
+   * Get every active lost/found report.
+   * This endpoint is public at backend level,
+   * but the frontend page itself is intended
+   * for logged-in users.
+   */
+  async getAllReports(): Promise<LostFoundReport[]> {
+    const response = await axios.get(API_URL);
 
-    if (!imageFile.type.startsWith("image/")) {
-      throw new Error("Please select a valid image file.");
-    }
+    return response.data?.listings || [];
+  },
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-    ];
+  /**
+   * Get reports created by the currently
+   * logged-in user.
+   */
+  async getMyReports(): Promise<LostFoundReport[]> {
+    const response = await axios.get(
+      `${API_URL}/mine`
+    );
 
-    if (!allowedTypes.includes(imageFile.type)) {
-      throw new Error(
-        "Please upload a JPG, PNG, or WEBP image."
+    return response.data?.listings || [];
+  },
+
+  /**
+   * Create a new lost/found report.
+   *
+   * Uses multipart/form-data because
+   * the pet image is uploaded together
+   * with the report.
+   */
+  async createReport(
+    data: CreateLostFoundData
+  ): Promise<LostFoundReport> {
+    const formData = new FormData();
+
+    formData.append("type", data.type);
+
+    if (data.petName) {
+      formData.append(
+        "petName",
+        data.petName
       );
     }
 
-    // 10 MB maximum
-    if (imageFile.size > 10 * 1024 * 1024) {
-      throw new Error(
-        "Image is too large. Please upload an image smaller than 10 MB."
+    formData.append(
+      "species",
+      data.species
+    );
+
+    formData.append(
+      "breed",
+      data.breed
+    );
+
+    formData.append(
+      "color",
+      data.color
+    );
+
+    formData.append(
+      "eyeColor",
+      data.eyeColor
+    );
+
+    formData.append(
+      "faceStructure",
+      data.faceStructure
+    );
+
+    if (data.collarNeckband) {
+      formData.append(
+        "collarNeckband",
+        data.collarNeckband
       );
     }
 
-    const imageBase64 = await fileToBase64(imageFile);
+    if (data.birthmarkOrFeature) {
+      formData.append(
+        "birthmarkOrFeature",
+        data.birthmarkOrFeature
+      );
+    }
 
-    const response = await fetch(
-      "/api/gemini/find-pet-matches",
+    if (data.lastWearCloth) {
+      formData.append(
+        "lastWearCloth",
+        data.lastWearCloth
+      );
+    }
+
+    formData.append(
+      "lastLocation",
+      data.lastLocation
+    );
+
+    formData.append(
+      "contactPhone",
+      data.contactPhone
+    );
+
+    formData.append(
+      "contactName",
+      data.contactName
+    );
+
+    if (data.reportedDate) {
+      formData.append(
+        "reportedDate",
+        data.reportedDate
+      );
+    }
+
+    formData.append(
+      "image",
+      data.image
+    );
+
+    const response = await axios.post(
+      API_URL,
+      formData,
       {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          imageBase64,
-          mimeType: imageFile.type,
-        }),
+        withCredentials: true,
       }
     );
 
-    let data: any = null;
+    return response.data.listing;
+  },
 
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(
-        "The server returned an invalid response."
-      );
-    }
+  /**
+   * Resolve one of the user's reports.
+   */
+  async resolveReport(
+    id: string
+  ): Promise<LostFoundReport> {
+    const response = await axios.patch(
+      `${API_URL}/${id}/resolve`,
+      {},
+      {
+        withCredentials: true,
+      }
+    );
 
-    if (!response.ok) {
-      throw new Error(
-        data?.error ||
-          `AI search failed with status ${response.status}.`
-      );
-    }
+    return response.data.listing;
+  },
 
-    if (!Array.isArray(data.matches)) {
-      throw new Error(
-        "AI search returned an invalid match list."
-      );
-    }
-
-    return data.matches;
+  /**
+   * Delete one of the user's reports.
+   */
+  async deleteReport(
+    id: string
+  ): Promise<void> {
+    await axios.delete(
+      `${API_URL}/${id}`,
+      {
+        withCredentials: true,
+      }
+    );
   },
 };

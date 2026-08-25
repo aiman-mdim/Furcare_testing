@@ -436,7 +436,12 @@ export interface LostAndFoundListing {
 
   petName?: string;
 
-  species: PetSpecies;
+  species:
+    | "dog"
+    | "cat"
+    | "rabbit"
+    | "bird"
+    | "other";
 
   breed: string;
 
@@ -471,27 +476,9 @@ export interface LostAndFoundListing {
 
   reportedDate: string;
 
-  imageFeatures?: {
-    species?: string;
+  createdAt?: string;
 
-    breed?: string;
-
-    color?: string;
-
-    markings?: string[];
-
-    facialFeatures?: string[];
-
-    distinctiveFeatures?: string[];
-  };
-
-  aiMatches?: {
-    listingId: string;
-
-    confidence: number;
-
-    reason: string;
-  }[];
+  updatedAt?: string;
 }
 
 // ============================================================

@@ -11,15 +11,17 @@ import mongoose from "mongoose";
 import LostFound from "../models/LostFound";
 
 import {
-  analyzePetImage,
-  matchPetImages,
-} from "../services/petImageAI";
+  requireAuth,
+  AuthRequest,
+} from "../middleware/auth";
 
 const router = express.Router();
 
-// ============================================
-// UPLOAD DIRECTORY
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| UPLOAD DIRECTORY
+|--------------------------------------------------------------------------
+*/
 
 const uploadDirectory = path.join(
   process.cwd(),
@@ -33,48 +35,54 @@ if (!fs.existsSync(uploadDirectory)) {
   });
 }
 
-// ============================================
-// MULTER STORAGE
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| MULTER STORAGE
+|--------------------------------------------------------------------------
+*/
 
-const storage = multer.diskStorage({
-  destination: (
-    _req,
-    _file,
-    cb
-  ) => {
-    cb(
-      null,
-      uploadDirectory
-    );
-  },
+const storage =
+  multer.diskStorage({
+    destination: (
+      _req,
+      _file,
+      cb
+    ) => {
+      cb(
+        null,
+        uploadDirectory
+      );
+    },
 
-  filename: (
-    _req,
-    file,
-    cb
-  ) => {
-    const extension = path
-      .extname(file.originalname)
-      .toLowerCase();
+    filename: (
+      _req,
+      file,
+      cb
+    ) => {
+      const extension =
+        path
+          .extname(
+            file.originalname
+          )
+          .toLowerCase();
 
-    const filename =
-      `pet-${Date.now()}-` +
-      `${Math.random()
-        .toString(36)
-        .substring(2, 9)}` +
-      `${extension}`;
+      const safeName =
+        `pet-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(2, 9)}${extension}`;
 
-    cb(
-      null,
-      filename
-    );
-  },
-});
+      cb(
+        null,
+        safeName
+      );
+    },
+  });
 
-// ============================================
-// MULTER
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| MULTER
+|--------------------------------------------------------------------------
+*/
 
 const upload = multer({
   storage,
@@ -111,33 +119,15 @@ const upload = multer({
   },
 });
 
-// ============================================
-// HELPERS
-// ============================================
-
-function getUserId(
-  req: Request
-): string | null {
-  const user = (req as any).user;
-
-  if (!user) {
-    return null;
-  }
-
-  return (
-    user.id ||
-    user._id ||
-    null
-  );
-}
-
-// ============================================
-// DELETE FILE SAFELY
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| DELETE FILE HELPER
+|--------------------------------------------------------------------------
+*/
 
 function deleteFile(
   filePath?: string
-): void {
+) {
   if (
     !filePath ||
     !fs.existsSync(filePath)
@@ -146,37 +136,30 @@ function deleteFile(
   }
 
   try {
-    fs.unlinkSync(filePath);
+    fs.unlinkSync(
+      filePath
+    );
   } catch (error) {
     console.error(
-      "Failed to delete file:",
+      "Could not delete file:",
       error
     );
   }
 }
 
-// ============================================
-// PHOTO URL → LOCAL FILE
-// ============================================
-
-function photoUrlToFilePath(
-  photoUrl: string
-): string {
-  const relativePath =
-    photoUrl.replace(
-      /^\/+/,
-      ""
-    );
-
-  return path.join(
-    process.cwd(),
-    relativePath
-  );
-}
-
-// ============================================
-// GET ALL LISTINGS
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| GET ALL REPORTS
+|--------------------------------------------------------------------------
+|
+| Everyone can read active reports.
+|
+| This is intentional because the requirement
+| is that logged-in users can see reports
+| registered by other users.
+|
+|--------------------------------------------------------------------------
+*/
 
 router.get(
   "/",
@@ -186,7 +169,9 @@ router.get(
   ) => {
     try {
       const listings =
-        await LostFound.find()
+        await LostFound.find({
+          status: "active",
+        })
           .sort({
             createdAt: -1,
           })
@@ -203,27 +188,55 @@ router.get(
 
       return res.status(500).json({
         error:
-          "Failed to load lost and found listings.",
+          "Failed to load lost and found reports.",
       });
     }
   }
 );
 
-// ============================================
-// GET FOUND PETS
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| GET MY REPORTS
+|--------------------------------------------------------------------------
+|
+| Only the authenticated user can access
+| this endpoint.
+|
+|--------------------------------------------------------------------------
+*/
 
 router.get(
-  "/found",
+  "/mine",
+  requireAuth,
   async (
-    _req: Request,
+    req: AuthRequest,
     res: Response
   ) => {
     try {
+      if (!req.userId) {
+        return res.status(401).json({
+          error:
+            "Authentication required.",
+        });
+      }
+
+      if (
+        !mongoose.Types.ObjectId.isValid(
+          req.userId
+        )
+      ) {
+        return res.status(400).json({
+          error:
+            "Invalid user ID.",
+        });
+      }
+
       const listings =
         await LostFound.find({
-          type: "found",
-          status: "active",
+          owner_id:
+            new mongoose.Types.ObjectId(
+              req.userId
+            ),
         })
           .sort({
             createdAt: -1,
@@ -235,64 +248,61 @@ router.get(
       });
     } catch (error) {
       console.error(
-        "GET found pets error:",
+        "GET my lost-found reports error:",
         error
       );
 
       return res.status(500).json({
         error:
-          "Failed to load found pets.",
+          "Failed to load your reports.",
       });
     }
   }
 );
 
-// ============================================
-// CREATE LOST / FOUND LISTING
-// ============================================
-//
-// POST /api/lost-found
-//
-// Content-Type:
-// multipart/form-data
-//
-// Image field:
-// image
-//
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| CREATE LOST / FOUND REPORT
+|--------------------------------------------------------------------------
+|
+| POST /api/lost-found
+|
+| multipart/form-data
+|
+| image = uploaded pet image
+|
+|--------------------------------------------------------------------------
+*/
 
 router.post(
   "/",
+  requireAuth,
   upload.single("image"),
   async (
-    req: Request,
+    req: AuthRequest,
     res: Response
   ) => {
-    let savedListing:
-      mongoose.Document | null = null;
-
     try {
-      // ========================================
-      // AUTHENTICATION
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | AUTH
+      |--------------------------------------------------------------------------
+      */
 
-      const userId =
-        getUserId(req);
-
-      if (!userId) {
+      if (!req.userId) {
         deleteFile(
           req.file?.path
         );
 
         return res.status(401).json({
           error:
-            "You must be logged in to create a listing.",
+            "You must be logged in to create a report.",
         });
       }
 
       if (
         !mongoose.Types.ObjectId.isValid(
-          userId
+          req.userId
         )
       ) {
         deleteFile(
@@ -301,24 +311,28 @@ router.post(
 
         return res.status(400).json({
           error:
-            "Invalid authenticated user ID.",
+            "Invalid authenticated user.",
         });
       }
 
-      // ========================================
-      // IMAGE REQUIRED
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | IMAGE
+      |--------------------------------------------------------------------------
+      */
 
       if (!req.file) {
         return res.status(400).json({
           error:
-            "Pet image is required.",
+            "Please upload a pet image.",
         });
       }
 
-      // ========================================
-      // READ FORM DATA
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | FORM DATA
+      |--------------------------------------------------------------------------
+      */
 
       const {
         type,
@@ -337,9 +351,11 @@ router.post(
         reportedDate,
       } = req.body;
 
-      // ========================================
-      // VALIDATE TYPE
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | VALIDATE TYPE
+      |--------------------------------------------------------------------------
+      */
 
       if (
         type !== "lost" &&
@@ -351,37 +367,15 @@ router.post(
 
         return res.status(400).json({
           error:
-            "Type must be lost or found.",
+            "Report type must be lost or found.",
         });
       }
 
-      // ========================================
-      // VALIDATE REQUIRED FIELDS
-      // ========================================
-
-      if (
-        !species ||
-        !breed ||
-        !color ||
-        !eyeColor ||
-        !faceStructure ||
-        !lastLocation ||
-        !contactPhone ||
-        !contactName
-      ) {
-        deleteFile(
-          req.file.path
-        );
-
-        return res.status(400).json({
-          error:
-            "Please provide all required pet information.",
-        });
-      }
-
-      // ========================================
-      // VALIDATE SPECIES
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | VALIDATE SPECIES
+      |--------------------------------------------------------------------------
+      */
 
       if (
         ![
@@ -400,9 +394,11 @@ router.post(
         });
       }
 
-      // ========================================
-      // VALIDATE FACE STRUCTURE
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | VALIDATE FACE STRUCTURE
+      |--------------------------------------------------------------------------
+      */
 
       if (
         ![
@@ -410,7 +406,9 @@ router.post(
           "long",
           "pointed",
           "flat",
-        ].includes(faceStructure)
+        ].includes(
+          faceStructure
+        )
       ) {
         deleteFile(
           req.file.path
@@ -422,22 +420,50 @@ router.post(
         });
       }
 
-      // ========================================
-      // PHOTO URL
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | REQUIRED FIELDS
+      |--------------------------------------------------------------------------
+      */
+
+      if (
+        !breed?.trim() ||
+        !color?.trim() ||
+        !eyeColor?.trim() ||
+        !lastLocation?.trim() ||
+        !contactPhone?.trim() ||
+        !contactName?.trim()
+      ) {
+        deleteFile(
+          req.file.path
+        );
+
+        return res.status(400).json({
+          error:
+            "Please complete all required fields.",
+        });
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | PHOTO URL
+      |--------------------------------------------------------------------------
+      */
 
       const photoUrl =
         `/uploads/lost-found/${req.file.filename}`;
 
-      // ========================================
-      // CREATE LISTING
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | CREATE DATABASE DOCUMENT
+      |--------------------------------------------------------------------------
+      */
 
       const listing =
         new LostFound({
           owner_id:
             new mongoose.Types.ObjectId(
-              userId
+              req.userId
             ),
 
           type,
@@ -482,7 +508,8 @@ router.post(
 
           photoUrl,
 
-          status: "active",
+          status:
+            "active",
 
           reportedDate:
             reportedDate ||
@@ -491,47 +518,19 @@ router.post(
               .split("T")[0],
         });
 
-      // ========================================
-      // SAVE LISTING FIRST
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | SAVE
+      |--------------------------------------------------------------------------
+      */
 
       await listing.save();
 
-      savedListing = listing;
-
-      // ========================================
-      // AI IMAGE ANALYSIS
-      // ========================================
-
-      try {
-        const imageFeatures =
-          await analyzePetImage(
-            req.file.path
-          );
-
-        listing.imageFeatures =
-          imageFeatures;
-
-        await listing.save();
-
-        console.log(
-          `AI analysis completed for ${listing._id}`
-        );
-      } catch (aiError) {
-        console.error(
-          "AI image analysis failed:",
-          aiError
-        );
-
-        /*
-         * The listing is still valid even
-         * if AI analysis fails.
-         */
-      }
-
-      // ========================================
-      // RETURN LISTING
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | RETURN
+      |--------------------------------------------------------------------------
+      */
 
       return res.status(201).json({
         success: true,
@@ -543,597 +542,206 @@ router.post(
         error
       );
 
-      // ========================================
-      // CLEAN UP UPLOADED IMAGE
-      // ========================================
-
       deleteFile(
         req.file?.path
       );
-
-      // ========================================
-      // CLEAN UP DB RECORD IF NECESSARY
-      // ========================================
-
-      if (
-        savedListing &&
-        "_id" in savedListing
-      ) {
-        try {
-          await LostFound.findByIdAndDelete(
-            savedListing._id
-          );
-        } catch (deleteError) {
-          console.error(
-            "Failed to rollback listing:",
-            deleteError
-          );
-        }
-      }
 
       return res.status(500).json({
         error:
           error instanceof Error
             ? error.message
-            : "Failed to create listing.",
+            : "Failed to create report.",
       });
     }
   }
 );
 
-// ============================================
-// AI PET IMAGE MATCHING
-// ============================================
-//
-// POST /api/lost-found/match
-//
-// Content-Type:
-// multipart/form-data
-//
-// Image field:
-// image
-//
-// Searches the uploaded lost-pet image
-// against active FOUND listings.
-//
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| RESOLVE REPORT
+|--------------------------------------------------------------------------
+|
+| Only the owner of the report can resolve it.
+|
+|--------------------------------------------------------------------------
+*/
 
-router.post(
-  "/match",
-  upload.single("image"),
+router.patch(
+  "/:id/resolve",
+  requireAuth,
   async (
-    req: Request,
+    req: AuthRequest,
     res: Response
   ) => {
     try {
-      // ========================================
-      // AUTH
-      // ========================================
-
-      const userId =
-        getUserId(req);
-
-      if (!userId) {
-        deleteFile(
-          req.file?.path
-        );
-
+      if (!req.userId) {
         return res.status(401).json({
           error:
-            "You must be logged in to search for your pet.",
+            "Authentication required.",
         });
       }
+
+      const {
+        id,
+      } = req.params;
 
       if (
         !mongoose.Types.ObjectId.isValid(
-          userId
-        )
-      ) {
-        deleteFile(
-          req.file?.path
-        );
-
-        return res.status(400).json({
-          error:
-            "Invalid authenticated user ID.",
-        });
-      }
-
-      // ========================================
-      // IMAGE REQUIRED
-      // ========================================
-
-      if (!req.file) {
-        return res.status(400).json({
-          error:
-            "Please upload a photo of your lost pet.",
-        });
-      }
-
-      // ========================================
-      // ANALYZE SEARCH IMAGE
-      // ========================================
-
-      let searchFeatures;
-
-      try {
-        searchFeatures =
-          await analyzePetImage(
-            req.file.path
-          );
-      } catch (error) {
-        console.error(
-          "Search image AI analysis failed:",
-          error
-        );
-
-        deleteFile(
-          req.file.path
-        );
-
-        return res.status(500).json({
-          error:
-            "AI could not analyze the uploaded pet image.",
-        });
-      }
-
-      // ========================================
-      // GET FOUND PETS
-      // ========================================
-
-      const foundPets =
-        await LostFound.find({
-          type: "found",
-          status: "active",
-        })
-          .sort({
-            createdAt: -1,
-          })
-          .lean();
-
-      if (!foundPets.length) {
-        deleteFile(
-          req.file.path
-        );
-
-        return res.json({
-          matches: [],
-          message:
-            "There are currently no active found-pet listings.",
-        });
-      }
-
-      // ========================================
-      // BUILD AI CANDIDATES
-      // ========================================
-
-      const candidates =
-        foundPets
-          .map((pet) => {
-            const imagePath =
-              photoUrlToFilePath(
-                pet.photoUrl
-              );
-
-            return {
-              listingId:
-                String(
-                  pet._id
-                ),
-
-              imagePath,
-
-              species:
-                pet.species,
-
-              breed:
-                pet.breed,
-
-              color:
-                pet.color,
-
-              eyeColor:
-                pet.eyeColor,
-
-              faceStructure:
-                pet.faceStructure,
-
-              imageFeatures:
-                pet.imageFeatures,
-            };
-          })
-          .filter(
-            (candidate) =>
-              fs.existsSync(
-                candidate.imagePath
-              )
-          );
-
-      // ========================================
-      // NO VALID IMAGES
-      // ========================================
-
-      if (
-        candidates.length === 0
-      ) {
-        deleteFile(
-          req.file.path
-        );
-
-        return res.json({
-          matches: [],
-          message:
-            "No valid found-pet images are currently available for AI matching.",
-        });
-      }
-
-      // ========================================
-      // RUN AI MATCHING
-      // ========================================
-
-      const matches =
-        await matchPetImages(
-          req.file.path,
-          candidates
-        );
-
-      // ========================================
-      // SAVE SEARCH FEATURES + MATCHES
-      // ========================================
-      //
-      // If the authenticated user already
-      // has an active lost-pet listing,
-      // save the AI results there.
-      //
-      // ========================================
-
-      const userLostListing =
-        await LostFound.findOne({
-          owner_id:
-            new mongoose.Types.ObjectId(
-              userId
-            ),
-
-          type: "lost",
-
-          status: "active",
-        }).sort({
-          createdAt: -1,
-        });
-
-      if (userLostListing) {
-        userLostListing.imageFeatures =
-          searchFeatures;
-
-        userLostListing.aiMatches =
-          matches;
-
-        await userLostListing.save();
-      }
-
-      // ========================================
-      // MAP MATCH RESULTS
-      // ========================================
-
-      const matchMap =
-        new Map(
-          matches.map(
-            (match) => [
-              String(
-                match.listingId
-              ),
-              match,
-            ]
-          )
-        );
-
-      const results =
-        foundPets
-          .filter((pet) =>
-            matchMap.has(
-              String(
-                pet._id
-              )
-            )
-          )
-          .map((pet) => {
-            const match =
-              matchMap.get(
-                String(
-                  pet._id
-                )
-              );
-
-            if (!match) {
-              return null;
-            }
-
-            return {
-              listingId:
-                String(
-                  pet._id
-                ),
-
-              confidence:
-                match.confidence,
-
-              reason:
-                match.reason,
-
-              listing:
-                pet,
-            };
-          })
-          .filter(
-            (
-              result
-            ): result is NonNullable<
-              typeof result
-            > =>
-              result !== null
-          )
-          .sort(
-            (a, b) =>
-              b.confidence -
-              a.confidence
-          );
-
-      // ========================================
-      // CLEAN TEMPORARY SEARCH IMAGE
-      // ========================================
-
-      deleteFile(
-        req.file.path
-      );
-
-      // ========================================
-      // RETURN RESULTS
-      // ========================================
-
-      return res.json({
-        success: true,
-
-        matches: results,
-
-        analyzedFeatures:
-          searchFeatures,
-      });
-    } catch (error) {
-      console.error(
-        "AI pet matching error:",
-        error
-      );
-
-      deleteFile(
-        req.file?.path
-      );
-
-      return res.status(500).json({
-        error:
-          error instanceof Error
-            ? error.message
-            : "AI pet matching failed.",
-      });
-    }
-  }
-);
-
-// ============================================
-// GET ONE LISTING
-// ============================================
-
-router.get(
-  "/:id",
-  async (
-    req: Request,
-    res: Response
-  ) => {
-    try {
-      if (
-        !mongoose.Types.ObjectId.isValid(
-          req.params.id
+          id
         )
       ) {
         return res.status(400).json({
           error:
-            "Invalid listing ID.",
+            "Invalid report ID.",
         });
       }
 
       const listing =
-        await LostFound.findById(
-          req.params.id
-        ).lean();
+        await LostFound.findOne({
+          _id: id,
+
+          owner_id:
+            new mongoose.Types.ObjectId(
+              req.userId
+            ),
+        });
 
       if (!listing) {
         return res.status(404).json({
           error:
-            "Listing not found.",
+            "Report not found or you do not own this report.",
         });
       }
 
+      listing.status =
+        "resolved";
+
+      await listing.save();
+
       return res.json({
+        success: true,
         listing,
       });
     } catch (error) {
       console.error(
-        "GET listing error:",
+        "Resolve report error:",
         error
       );
 
       return res.status(500).json({
         error:
-          "Failed to load listing.",
+          "Failed to resolve report.",
       });
     }
   }
 );
 
-// ============================================
-// DELETE LISTING
-// ============================================
+/*
+|--------------------------------------------------------------------------
+| DELETE REPORT
+|--------------------------------------------------------------------------
+|
+| Only the owner can delete the report.
+|
+|--------------------------------------------------------------------------
+*/
 
 router.delete(
   "/:id",
+  requireAuth,
   async (
-    req: Request,
+    req: AuthRequest,
     res: Response
   ) => {
     try {
-      // ========================================
-      // AUTH
-      // ========================================
-
-      const userId =
-        getUserId(req);
-
-      if (!userId) {
+      if (!req.userId) {
         return res.status(401).json({
           error:
-            "You must be logged in.",
+            "Authentication required.",
         });
       }
 
+      const {
+        id,
+      } = req.params;
+
       if (
         !mongoose.Types.ObjectId.isValid(
-          req.params.id
+          id
         )
       ) {
         return res.status(400).json({
           error:
-            "Invalid listing ID.",
+            "Invalid report ID.",
         });
       }
 
-      // ========================================
-      // FIND LISTING
-      // ========================================
-
       const listing =
-        await LostFound.findById(
-          req.params.id
-        );
+        await LostFound.findOne({
+          _id: id,
+
+          owner_id:
+            new mongoose.Types.ObjectId(
+              req.userId
+            ),
+        });
 
       if (!listing) {
         return res.status(404).json({
           error:
-            "Listing not found.",
+            "Report not found or you do not own this report.",
         });
       }
 
-      // ========================================
-      // OWNER CHECK
-      // ========================================
+      /*
+      |--------------------------------------------------------------------------
+      | Delete physical image
+      |--------------------------------------------------------------------------
+      */
 
-      if (
-        String(
-          listing.owner_id
-        ) !== String(userId)
-      ) {
-        return res.status(403).json({
-          error:
-            "You cannot delete this listing.",
-        });
-      }
-
-      // ========================================
-      // DELETE IMAGE
-      // ========================================
-
-      if (listing.photoUrl) {
-        const imagePath =
-          photoUrlToFilePath(
-            listing.photoUrl
-          );
-
-        deleteFile(
-          imagePath
+      const relativePath =
+        listing.photoUrl.replace(
+          /^\/+/,
+          ""
         );
-      }
 
-      // ========================================
-      // DELETE DATABASE RECORD
-      // ========================================
+      const filePath =
+        path.join(
+          process.cwd(),
+          relativePath
+        );
 
-      await listing.deleteOne();
+      deleteFile(
+        filePath
+      );
+
+      /*
+      |--------------------------------------------------------------------------
+      | Delete database record
+      |--------------------------------------------------------------------------
+      */
+
+      await LostFound.findByIdAndDelete(
+        id
+      );
 
       return res.json({
         success: true,
         message:
-          "Listing deleted successfully.",
+          "Report deleted successfully.",
       });
     } catch (error) {
       console.error(
-        "DELETE listing error:",
+        "Delete report error:",
         error
       );
 
       return res.status(500).json({
         error:
-          "Failed to delete listing.",
+          "Failed to delete report.",
       });
     }
   }
 );
-
-// ============================================
-// MULTER ERROR HANDLER
-// ============================================
-
-router.use(
-  (
-    error: any,
-    _req: Request,
-    res: Response,
-    _next: express.NextFunction
-  ) => {
-    if (
-      error instanceof
-      multer.MulterError
-    ) {
-      if (
-        error.code ===
-        "LIMIT_FILE_SIZE"
-      ) {
-        return res.status(400).json({
-          error:
-            "Image is too large. Maximum size is 10MB.",
-        });
-      }
-
-      return res.status(400).json({
-        error:
-          error.message ||
-          "Image upload failed.",
-      });
-    }
-
-    if (
-      error instanceof Error &&
-      error.message.includes(
-        "Only JPG"
-      )
-    ) {
-      return res.status(400).json({
-        error:
-          error.message,
-      });
-    }
-
-    console.error(
-      "Lost-found route error:",
-      error
-    );
-
-    return res.status(500).json({
-      error:
-        "An unexpected upload error occurred.",
-    });
-  }
-);
-
-// ============================================
-// EXPORT
-// ============================================
 
 export default router;

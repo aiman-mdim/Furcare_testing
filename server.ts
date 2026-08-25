@@ -3,6 +3,7 @@ import { connectDatabase } from "./server/db";
 import authRoutes from "./server/routes/auth";
 import petRoutes from "./server/routes/pets";
 import orderRoutes from "./server/routes/orders";
+import lostFoundRoutes from "./server/routes/lostFounds";
 
 import express from "express";
 import path from "path";
@@ -26,7 +27,21 @@ app.use(
     limit: "15mb",
   })
 );
+// ======================================================
+// STATIC UPLOADED FILES
+// ======================================================
 
+app.use(
+  "/uploads",
+  express.static(
+    path.join(
+      process.cwd(),
+      "uploads"
+    )
+  )
+);
+
+// ======================================================
 // ======================================================
 // EXISTING ROUTES
 // ======================================================
@@ -36,7 +51,15 @@ app.use("/api/pets", petRoutes);
 app.use("/api/orders", orderRoutes);
 
 // ======================================================
+// LOST & FOUND
+// ======================================================
+
+app.use("/api/lost-found", lostFoundRoutes);
+
+// ======================================================
 // GEMINI
+// ======================================================
+
 // ======================================================
 
 let aiClient: GoogleGenAI | null = null;
