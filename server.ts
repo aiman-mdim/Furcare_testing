@@ -10,7 +10,6 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
-import path from "path";
 import cors from "cors";
 
 dotenv.config({
@@ -352,11 +351,21 @@ You do not replace a professional veterinary examination.
 // HEALTH CHECK
 // ======================================================
 
+app.get("/", (_req, res) => {
+  res.json({
+    name: "FurCare API",
+    status: "running",
+    health: "/api/health",
+  });
+});
+
 app.get("/api/health", (_req, res) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    geminiConfigured: Boolean(process.env.GEMINI_API_KEY),
+    geminiConfigured: Boolean(
+      process.env.GEMINI_API_KEY
+    ),
   });
 });
 
