@@ -7,6 +7,10 @@
     {
       "source": "/uploads/:path*",
       "destination": "https://furcare-t4fp.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
