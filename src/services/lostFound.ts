@@ -1,6 +1,8 @@
 import axios from "axios";
+import API_BASE_URL from "../config/api";
 
-export type LostFoundType = "lost" | "found";
+export type LostFoundType =
+  "lost" | "found";
 
 export interface LostFoundReport {
   _id: string;
@@ -10,7 +12,10 @@ export interface LostFoundReport {
 
   petName?: string;
 
-  species: "dog" | "cat" | "rabbit";
+  species:
+    | "dog"
+    | "cat"
+    | "rabbit";
 
   breed: string;
   color: string;
@@ -49,7 +54,10 @@ export interface CreateLostFoundData {
 
   petName?: string;
 
-  species: "dog" | "cat" | "rabbit";
+  species:
+    | "dog"
+    | "cat"
+    | "rabbit";
 
   breed: string;
   color: string;
@@ -75,7 +83,8 @@ export interface CreateLostFoundData {
   image: File;
 }
 
-const API_URL = "/api/lost-found";
+const API_URL =
+  `${API_BASE_URL}/api/lost-found`;
 
 export const lostFoundApi = {
   /**
