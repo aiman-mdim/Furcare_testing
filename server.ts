@@ -19,14 +19,29 @@ dotenv.config({
 const app = express();
 app.use(
   cors({
-    origin: [
-      "http://localhost:5173",
-      "https://furcare-two.vercel.app",
-    ],
+    origin: (origin, callback) => {
+      // Allow requests with no browser origin
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Allow local development and all Vercel deployments
+      if (
+        origin === "http://localhost:5173" ||
+        origin.endsWith(".vercel.app")
+      ) {
+        return callback(null, true);
+      }
+
+      callback(new Error(`CORS blocked: ${origin}`));
+    },
     credentials: true,
   })
 );
+
 const PORT = Number(process.env.PORT) || 3000;
+
+
 
 // ======================================================
 // MIDDLEWARE
