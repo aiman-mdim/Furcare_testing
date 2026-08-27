@@ -38,13 +38,34 @@ function createToken(user: any) {
   );
 }
 
-function setAuthCookie(res: any, token: string) {
-  res.cookie("furcare_token", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+function setAuthCookie(
+  res: any,
+  token: string
+) {
+  res.cookie(
+    "furcare_token",
+    token,
+    {
+      httpOnly: true,
+
+      secure:
+        process.env.NODE_ENV ===
+        "production",
+
+      sameSite:
+        process.env.NODE_ENV ===
+        "production"
+          ? "none"
+          : "lax",
+
+      maxAge:
+        7 *
+        24 *
+        60 *
+        60 *
+        1000,
+    }
+  );
 }
 
 /*

@@ -1,3 +1,5 @@
+import API_BASE_URL from "../config/api";
+
 const request = async (
   url: string,
   options: RequestInit = {}
@@ -35,28 +37,39 @@ export const authApi = {
     city?: string;
     role: string;
   }) =>
-    request("/api/auth/register", {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }),
+    request(
+      `${API_BASE_URL}/api/auth/register`,
+      {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }
+    ),
 
   login: (
     email: string,
     password: string
   ) =>
-    request("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({
-        email,
-        password,
-      }),
-    }),
+    request(
+      `${API_BASE_URL}/api/auth/login`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      }
+    ),
 
   me: () =>
-    request("/api/auth/me"),
+    request(
+      `${API_BASE_URL}/api/auth/me`
+    ),
 
   logout: () =>
-    request("/api/auth/logout", {
-      method: "POST",
-    }),
+    request(
+      `${API_BASE_URL}/api/auth/logout`,
+      {
+        method: "POST",
+      }
+    ),
 };

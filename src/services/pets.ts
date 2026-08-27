@@ -14,7 +14,10 @@ import {
  * serves the Vite frontend itself.
  */
 
-const API_URL = "/api/pets";
+import API_BASE_URL from "../config/api";
+
+const API_URL =
+  `${API_BASE_URL}/api/pets`;
 
 interface ApiPet {
   _id: string;

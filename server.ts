@@ -10,10 +10,23 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import path from "path";
+import cors from "cors";
 
-dotenv.config();
+dotenv.config({
+  path: path.resolve(process.cwd(), ".env"),
+});
 
 const app = express();
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://furcare-two.vercel.app",
+    ],
+    credentials: true,
+  })
+);
 const PORT = Number(process.env.PORT) || 3000;
 
 // ======================================================
