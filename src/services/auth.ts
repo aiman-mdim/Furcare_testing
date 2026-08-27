@@ -21,7 +21,9 @@ const request = async (
 
   if (!response.ok) {
     throw new Error(
-      data.error || "Something went wrong"
+      data?.error ||
+      data?.message ||
+      `Request failed with status ${response.status}`
     );
   }
 
