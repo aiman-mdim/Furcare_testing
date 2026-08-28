@@ -1,7 +1,7 @@
 🐾 FurCare
 
 A full-stack pet care management platform designed to help pet owners access and manage pet-related services from one place.
-FurCare provides features for pet management, authentication, bookings and orders, lost & found functionality, and AI-powered pet image capabilities.
+FurCare provides features for pet management, authentication, bookings and orders, lost & found functionality, and AI-Chat doctor.
 
 ## ✨ Features
 
@@ -12,6 +12,7 @@ FurCare provides features for pet management, authentication, bookings and order
 * 📱 Responsive React user interface
 * 🗄️ MongoDB database integration
 * 🌐 RESTful API architecture
+* 🤖 Responsive AI Doctor Chat
 
 ## 🛠️ Tech Stack
 
@@ -39,11 +40,6 @@ FurCare provides features for pet management, authentication, bookings and order
 * Cookie Parser
 * dotenv
 
-### AI Integration
-
-* Google Generative AI
-* Google GenAI
-* 
 ## 📂 Project Structure
 
 Furcare_testing/
@@ -92,12 +88,9 @@ FurCare uses **MongoDB** as the primary database.
 
 # 🤖 AI Features
 
-The project includes AI-related functionality using:
+* 🩺 **AI Pet Doctor:** Provides AI-powered assistance for pet health-related questions and offers basic guidance based on the user's concerns.
+* 🐾 Helps pet owners better understand common pet health issues and care needs.
 
-* Google Generative AI
-* Google GenAI
-
-These services can be used for AI-powered pet-related features, including image analysis or generation depending on the application implementation.
 # 🌐 Deployment
 
 The project includes a `vercel.json` configuration file for deployment settings.
