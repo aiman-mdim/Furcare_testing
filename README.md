@@ -108,6 +108,5 @@ Before deployment, make sure all required environment variables are configured i
 
 This project was developed as an academic full-stack web application project by the **FurCare project team**.
 
-# 📄 License
 
 ⭐ If you like this project, consider giving the repository a star!
